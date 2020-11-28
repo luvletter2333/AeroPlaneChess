@@ -1,10 +1,18 @@
 package me.luvletter.planechess;
 
+import me.luvletter.planechess.client.*;
+import me.luvletter.planechess.client.Point;
+import me.luvletter.planechess.eventargs.Show_Other_Dice_EventArg;
+import me.luvletter.planechess.server.IGame;
+import me.luvletter.planechess.server.PlayerColor;
+
+import javax.print.attribute.standard.JobKOctets;
 import javax.swing.*;
-import javax.swing.border.TitledBorder;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -27,22 +35,31 @@ public class formMain {
     private JPanel panel_status;
     private JLabel label_status;
 
-    private int counter = 0;
-
     public Drawable_JPanel dpanel_Main;
     public Drawable_JPanel dpanel_Dice;
 
-    private final Object dicing_lock = new Object();
+    // -1 -> disable dicing
+    // 0 -> allow dicing, not started yet
+    // 1 -> first dicing finished, waiting for the second
+    // 2 -> second dicing finished, wait 5s to reset to Dice_Unknown
+    // private int dicing_status = 0;
+    private int dice_round = 0;
+    private int first_dice_result = 0;
+    private int second_dice_result = 0;
     private boolean dicing = false;
+    private final Object dicing_lock = new Object(); // Dicing lock
 
-    private IServer server;
+    private final Object board_drawing_lock = new Object(); // Main Canvas Drawing Lock
 
-    public formMain(IServer server) {
+    private IGame game_server;
+
+    public formMain(IGame game_server) {
         super();
-        this.server = server;
+        this.game_server = game_server;
 
         dpanel_Main = new Drawable_JPanel();
         dpanel_Dice = new Drawable_JPanel();
+
 
         register_Canvas(dpanel_Main, panel_canvas_container_main);
         register_Canvas(dpanel_Dice, panel_canvas_container_dice);
@@ -50,19 +67,63 @@ public class formMain {
         dpanel_Main.Draw(Resource.getResource(ResourceType.ChessBoard));
         dpanel_Dice.Draw(Resource.getResource(ResourceType.Dice_Unknown));
 
-        btn_dice.addActionListener(new ActionListener() {
+        game_server.addCallback_Allow_Dice(this::cb_allow_Dice);
+        game_server.addCallback_Show_Other_Dice(this::cb_show_other_Dice_Animation);
+
+    //    btn_dice.setEnabled(false);
+        btn_dice.addActionListener(actionEvent -> {
+            btn_dice.setEnabled(false);
+            dice_round = 1;
+            int result = game_server.rolling_Dice();
+            first_dice_result = result / 10;
+            second_dice_result = result % 10;
+
+            label_Down.setText("Dicing Round 1! Good luck~");
+            dice_Animation(first_dice_result, () -> {
+                label_Down.setText("Dicing Round 2 is coming~");
+                // First round finished
+                dice_round = 2;
+                new Timer().schedule(new TimerTask() {
+                    @Override
+                    public void run() {
+                        dice_Animation(second_dice_result,()->{
+                            label_Down.setText("Dicing Round 2 ends.");
+                            label_status.setText(convertToMultiline(
+                                    "Round 1: "+first_dice_result +
+                                    "\nRound 2: " + second_dice_result +
+                                    "\nPlease click your plane to fly~"));
+                        });
+                    }
+                }, 3000);
+            });
+        });
+
+        dpanel_Main.addMouseListener(new MouseAdapter() {
             @Override
-            public void actionPerformed(ActionEvent actionEvent) {
-                label_Down.setText("You suck!" + counter++);
-                int result = server.rolling_Dice();
-                if(!dice_Animation(result))
-                    System.out.println("Dicing Rejected!!");
+            public void mouseClicked(MouseEvent e) {
+                super.mouseClicked(e);
+                var p = ChessBoardClickHelper.getPointfromMouseEvent(e);
+                System.out.println(p);
+                var ps = ChessBoardClickHelper.matchPositionfromPoint(p);
+                System.out.println(ps);
             }
         });
     }
 
-    // Show dicing animation, with result given
-    private boolean dice_Animation(int dice_result) {
+    // Callback for server
+    private void cb_allow_Dice(){
+      //  dicing_status = 0;
+        first_dice_result = 0; second_dice_result = 0; dice_round = 1;
+        btn_dice.setEnabled(true);
+    }
+
+    private Object cb_show_other_Dice_Animation(Show_Other_Dice_EventArg args){
+
+        return null;
+    }
+
+    // Show dicing animation, with result given, dice_result -> [1,6]
+    private boolean dice_Animation(int dice_result, Runnable finish_callback) {
         synchronized (dicing_lock) {
             if(dicing) return false; // If a dicing task is doing, reject this try
             dicing = true;
@@ -78,12 +139,16 @@ public class formMain {
                     if (count == total_count) {
                         // the final loop, show result
                         dpanel_Dice.Draw(getResultImage(dice_result));
+                        label_status.setText(convertToMultiline("Round " + dice_round + " ends.\nYou get " + dice_result + "!"));
                         timer.cancel();
                         synchronized (dicing_lock){
                             dicing = false; // reset dicing task flag
                         }
+                        if(finish_callback != null)
+                            finish_callback.run();
                         return;
                     }
+                    label_status.setText(convertToMultiline("Round " + dice_round +".\nYou are dicing" + ".".repeat(count % 3 + 2)));
                     // Animation loop
                     dpanel_Dice.Draw(getAnimationImage(count));
                 }
@@ -122,6 +187,11 @@ public class formMain {
     // Show https://intellij-support.jetbrains.com/hc/en-us/community/posts/360003406579-Drawing-on-a-JPanel-of-a-form
     private void register_Canvas(Drawable_JPanel dPanel, JPanel father_container) {
         father_container.add(dPanel, BorderLayout.CENTER);
+    }
+
+    private static String convertToMultiline(String orig)
+    {
+        return "<html>" + orig.replaceAll("\n", "<br>");
     }
 
 }

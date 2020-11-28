@@ -1,13 +1,9 @@
 package me.luvletter.planechess;
 
-import javax.imageio.ImageIO;
+import me.luvletter.planechess.client.Resource;
+import me.luvletter.planechess.server.InternalGame;
+
 import javax.swing.*;
-import java.awt.*;
-import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.IOException;
-import java.nio.Buffer;
-import java.util.HashMap;
 
 public class Main {
 
@@ -29,7 +25,7 @@ public class Main {
         // Load Resources
         Resource.loadResources();
 
-        var internalServer = new InternalServer();
+        var internalServer = new InternalGame(2);
 
         var form = new formMain(internalServer);
         var gui = new JFrame("Test App");

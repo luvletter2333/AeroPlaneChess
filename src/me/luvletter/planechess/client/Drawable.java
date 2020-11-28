@@ -1,4 +1,4 @@
-package me.luvletter.planechess;
+package me.luvletter.planechess.client;
 
 import java.awt.image.BufferedImage;
 

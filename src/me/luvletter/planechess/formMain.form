@@ -116,7 +116,9 @@
             <margin top="5" left="5" bottom="5" right="5"/>
             <constraints>
               <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false">
-                <minimum-size width="-1" height="100"/>
+                <minimum-size width="170" height="100"/>
+                <preferred-size width="170" height="-1"/>
+                <maximum-size width="170" height="-1"/>
               </grid>
             </constraints>
             <properties>
@@ -144,7 +146,11 @@
         <children>
           <grid id="1ed09" binding="panel_canvas_container_main" layout-manager="BorderLayout" hgap="0" vgap="0">
             <constraints>
-              <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
+              <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="0" indent="0" use-parent-layout="false">
+                <minimum-size width="612" height="612"/>
+                <preferred-size width="612" height="612"/>
+                <maximum-size width="612" height="612"/>
+              </grid>
             </constraints>
             <properties/>
             <border type="none"/>
