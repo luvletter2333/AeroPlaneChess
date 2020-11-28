@@ -1,7 +1,11 @@
 package me.luvletter.planechess.client;
 
+import me.luvletter.planechess.server.PlayerColor;
+
+import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.util.*;
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class ChessBoardClickHelper {
@@ -14,20 +18,66 @@ public class ChessBoardClickHelper {
         return java.awt.Point.distanceSq(A.X, A.Y, B.X, B.Y);
     }
 
+    private static final Color redSample = new Color(240, 0 ,0);
+    private static final Color yellowSample = new Color(240, 240 ,0);
+    private static final Color blueSample = new Color(96, 111,240);
+    private static final Color greenSample = new Color(0, 159 ,0);
+
+    private static double colorDistance(int r1, int g1, int b1, Color c){
+        return (c.getRed() - r1)*(c.getRed() - r1)
+                + (c.getGreen() - g1)*(c.getGreen() - g1)
+                + (c.getBlue() - b1)*(c.getBlue() - b1);
+    }
+
+    private static PlayerColor matchColor(int RGB){
+        double tmp;
+        int red =   (RGB & 0x00ff0000) >> 16;
+        int green = (RGB & 0x0000ff00) >> 8;
+        int blue =   RGB & 0x000000ff;
+        tmp = colorDistance(red, green, blue, redSample);
+        if(tmp < 100) return PlayerColor.Red;
+        tmp = colorDistance(red, green, blue, yellowSample);
+        if(tmp < 100) return PlayerColor.Yellow;
+        tmp = colorDistance(red, green, blue, blueSample);
+        if(tmp < 100) return PlayerColor.Blue;
+        tmp = colorDistance(red, green, blue, greenSample);
+        if(tmp < 100) return PlayerColor.Green;
+        return null;
+    }
+
     public static Position matchPositionfromPoint(Point p){
+        int click_RGB = Resource.getResource(ResourceType.ChessBoard).getRGB(p.X, p.Y);
+        var mat = matchColor(click_RGB);
+        Collection<Position> ps;
+        if(mat != null)
+            ps = switch (mat){
+                case Red -> RedPositions.values();
+                case Green -> GreenPositions.values();
+                case Yellow -> YellowPositions.values();
+                case Blue -> BluePositions.values();
+                default -> null;
+            };
+        else // click on White part
+            ps = Positions;
         double min = 999999;
         Position minPosition = null;
-        for(var en : Positions){
+        for(var en : ps){
             var tmp = Sqdistance(p, en.Point);
             if(tmp < min){
                 min = tmp;
                 minPosition = en;
             }
         }
-        return minPosition;
+        System.out.println(min);
+        if(mat != null)
+            return minPosition; // Color based match, trusted result
+        else if(min < 500)
+            return minPosition; // Click on white, but still close
+        else return null;
     }
 
     public static final HashMap<Integer, Position> RedPositions = new HashMap<Integer, Position>(){{
+        put(100, new Position(100, 71, 537));
         put(101, new Position(101, 180, 523));
         put(102, new Position(102, 126, 432));
         put(103, new Position(103, 34 , 342));
@@ -50,6 +100,7 @@ public class ChessBoardClickHelper {
     }};
 
     public static final HashMap<Integer, Position> YellowPositions = new HashMap<Integer, Position>(){{
+        put(200, new Position(200, 72, 68));
         put(201, new Position(201, 89 , 179));
         put(202, new Position(202, 178, 124));
         put(203, new Position(203, 269, 35) );
@@ -72,6 +123,7 @@ public class ChessBoardClickHelper {
     }};
 
     public static final HashMap<Integer, Position> BluePositions = new HashMap<Integer, Position>(){{
+        put(300, new Position(300, 532, 78));
         put(301, new Position(301, 430, 89));
         put(302, new Position(302, 485, 178));
         put(303, new Position(303, 574, 269));
@@ -94,6 +146,7 @@ public class ChessBoardClickHelper {
     }};
 
     public static final HashMap<Integer, Position> GreenPositions = new HashMap<Integer, Position>(){{
+        put(400, new Position(400, 536, 537));
         put(401, new Position(401, 520, 430));
         put(402, new Position(402, 430, 485));
         put(403, new Position(403, 341, 576));
