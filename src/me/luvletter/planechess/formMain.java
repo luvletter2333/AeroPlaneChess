@@ -3,7 +3,7 @@ package me.luvletter.planechess;
 import me.luvletter.planechess.client.*;
 import me.luvletter.planechess.client.Point;
 import me.luvletter.planechess.eventargs.Show_Other_Dice_EventArg;
-import me.luvletter.planechess.server.IGame;
+import me.luvletter.planechess.server.Game;
 import me.luvletter.planechess.server.PlayerColor;
 
 import javax.print.attribute.standard.JobKOctets;
@@ -51,9 +51,9 @@ public class formMain {
 
     private final Object board_drawing_lock = new Object(); // Main Canvas Drawing Lock
 
-    private IGame game_server;
+    private Game game_server;
 
-    public formMain(IGame game_server) {
+    public formMain(Game game_server) {
         super();
         this.game_server = game_server;
 

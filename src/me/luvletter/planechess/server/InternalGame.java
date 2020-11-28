@@ -2,7 +2,7 @@ package me.luvletter.planechess.server;
 
 import java.util.Random;
 
-public class InternalGame extends IGame {
+public class InternalGame extends Game {
 
     public InternalGame(int player_Count) {
         super(player_Count);
