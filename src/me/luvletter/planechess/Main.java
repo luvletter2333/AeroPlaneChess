@@ -29,16 +29,17 @@ public class Main {
         // Load Resources
         Resource.loadResources();
 
+        var internalServer = new InternalServer();
 
-        var form = new formMain();
+        var form = new formMain(internalServer);
         var gui = new JFrame("Test App");
         gui.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         gui.setSize(800, 750);
         gui.setContentPane(form.panel_Main);
 
 
-        form.dpanel_Main.Draw(Resource.getResource(ResourceType.ChessBoard));
-        form.dpanel_Dice.Draw(Resource.getResource(ResourceType.Dice_Unknown));
+       // form.dpanel_Main.Draw(Resource.getResource(ResourceType.ChessBoard));
+        //form.dpanel_Dice.Draw(Resource.getResource(ResourceType.Dice_Unknown));
 
         gui.setVisible(true);
 
