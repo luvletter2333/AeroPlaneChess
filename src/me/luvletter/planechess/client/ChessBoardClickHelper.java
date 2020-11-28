@@ -68,7 +68,7 @@ public class ChessBoardClickHelper {
                 minPosition = en;
             }
         }
-        System.out.println(min);
+        //System.out.println(min);
         if(mat != null)
             return minPosition; // Color based match, trusted result
         else if(min < 500)
