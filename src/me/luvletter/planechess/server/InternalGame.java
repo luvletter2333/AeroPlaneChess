@@ -1,5 +1,7 @@
 package me.luvletter.planechess.server;
 
+import java.util.Hashtable;
+import java.util.LinkedHashMap;
 import java.util.Random;
 
 public class InternalGame extends Game {
@@ -18,17 +20,39 @@ public class InternalGame extends Game {
     }
 
     @Override
-    public ChessBoardStatus move(int plane_id, int step) {
-        return null;
+    public void move(int plane_id, int step) {
+
     }
 
     @Override
     public ChessBoardStatus getChessboard() {
-        return null;
+        var cb = new ChessBoardStatus(4,new LinkedHashMap<>(){{
+            put(11,100);
+            put(12,100);
+            put(13,100);
+            put(14,100);
+            put(21,200);
+            put(22,200);
+            put(23,200);
+            put(24,200);
+            put(31,300);
+            put(32,300);
+            put(33,300);
+            put(34,300);
+            put(41,400);
+            put(42,400);
+            put(43,400);
+            put(44,400);
+        }});
+        return cb;
     }
 
     public void Allow_Dice(){
         if(runnable_allow_dice != null)
             runnable_allow_dice.run();
+    }
+
+    public void forceupdate() {
+        runnable_update_chessboard.apply(getChessboard());
     }
 }

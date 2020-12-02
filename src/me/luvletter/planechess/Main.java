@@ -4,6 +4,7 @@ import me.luvletter.planechess.client.Resource;
 import me.luvletter.planechess.server.InternalGame;
 
 import javax.swing.*;
+import java.util.TimerTask;
 
 public class Main {
 
@@ -39,6 +40,12 @@ public class Main {
 
         gui.setVisible(true);
 
+        new java.util.Timer().schedule(new TimerTask() {
+            @Override
+            public void run() {
+                internalServer.forceupdate();
+            }
+        }, 3000);
 
     }
 

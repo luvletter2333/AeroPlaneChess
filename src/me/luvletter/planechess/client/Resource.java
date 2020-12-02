@@ -1,6 +1,7 @@
 package me.luvletter.planechess.client;
 
 import javax.imageio.ImageIO;
+import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -30,6 +31,14 @@ public class Resource {
                 ioe.printStackTrace();
             }
         }
+    }
+
+    public static BufferedImage copyImage(BufferedImage source){
+        var b = new BufferedImage(source.getWidth(), source.getHeight(), source.getType());
+        Graphics g = b.getGraphics();
+        g.drawImage(source, 0, 0, null);
+        g.dispose();
+        return b;
     }
 
     private static String getResourcePath(ResourceType type){

@@ -3,6 +3,7 @@ package me.luvletter.planechess;
 import me.luvletter.planechess.client.*;
 import me.luvletter.planechess.client.Point;
 import me.luvletter.planechess.eventargs.Show_Other_Dice_EventArg;
+import me.luvletter.planechess.server.ChessBoardStatus;
 import me.luvletter.planechess.server.Game;
 import me.luvletter.planechess.server.PlayerColor;
 
@@ -14,6 +15,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
+import java.nio.Buffer;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -69,8 +71,9 @@ public class formMain {
 
         game_server.addCallback_Allow_Dice(this::cb_allow_Dice);
         game_server.addCallback_Show_Other_Dice(this::cb_show_other_Dice_Animation);
+        game_server.addCallback_update_chessboard(this::cb_update_chessboard);
 
-    //    btn_dice.setEnabled(false);
+        //    btn_dice.setEnabled(false);
         btn_dice.addActionListener(actionEvent -> {
             btn_dice.setEnabled(false);
             dice_round = 1;
@@ -86,12 +89,12 @@ public class formMain {
                 new Timer().schedule(new TimerTask() {
                     @Override
                     public void run() {
-                        dice_Animation(second_dice_result,()->{
+                        dice_Animation(second_dice_result, () -> {
                             label_Down.setText("Dicing Round 2 ends.");
                             label_status.setText(convertToMultiline(
-                                    "Round 1: "+first_dice_result +
-                                    "\nRound 2: " + second_dice_result +
-                                    "\nPlease click your plane to fly~"));
+                                    "Round 1: " + first_dice_result +
+                                            "\nRound 2: " + second_dice_result +
+                                            "\nPlease click your plane to fly~"));
                         });
                     }
                 }, 3000);
@@ -105,27 +108,66 @@ public class formMain {
                 var p = ChessBoardClickHelper.getPointfromMouseEvent(e);
                 System.out.println(p);
                 var ps = ChessBoardClickHelper.matchPositionfromPoint(p);
-                System.out.println(ps);
+                //   System.out.println(ps);
             }
         });
     }
 
     // Callback for server
-    private void cb_allow_Dice(){
-      //  dicing_status = 0;
-        first_dice_result = 0; second_dice_result = 0; dice_round = 1;
+    private void cb_allow_Dice() {
+        //  dicing_status = 0;
+        first_dice_result = 0;
+        second_dice_result = 0;
+        dice_round = 1;
         btn_dice.setEnabled(true);
     }
 
-    private Object cb_show_other_Dice_Animation(Show_Other_Dice_EventArg args){
-
+    private Object cb_show_other_Dice_Animation(Show_Other_Dice_EventArg args) {
         return null;
     }
+
+    private Object cb_update_chessboard(ChessBoardStatus cbs) {
+        BufferedImage back = Resource.copyImage(Resource.getResource(ResourceType.ChessBoard));
+        var g = back.getGraphics();
+        var pst = cbs.getPosition();
+        var counter = new Counter();
+        var hangerDrawHelper = new HangerDrawHelper();
+
+        pst.forEach((key, rpos) -> {
+            System.out.println(key + " " + rpos);
+            final int player = key % 10; // rom 1 to 4
+            final int plane_id = key / 10; // from 1 to 4
+            Point pos;
+            if (rpos % 100 == 0) {
+                // in its hangar
+                pos = hangerDrawHelper.getPoint(rpos);
+            } else
+                pos = switch (player) {
+                    case 1 -> PositionList.RedPositions.get(rpos).Point;
+                    case 2 -> PositionList.YellowPositions.get(rpos).Point;
+                    case 3 -> PositionList.BluePositions.get(rpos).Point;
+                    case 4 -> PositionList.GreenPositions.get(rpos).Point;
+                    default -> null;
+                };
+            BufferedImage plane_img = switch (player) {
+                case 1 -> Resource.getResource(ResourceType.Red_Plane);
+                case 2 -> Resource.getResource(ResourceType.Yellow_Plane);
+                case 3 -> Resource.getResource(ResourceType.Blue_Plane);
+                case 4 -> Resource.getResource(ResourceType.Green_Plane);
+                default -> null;
+            };
+            System.out.println(pos);
+            g.drawImage(plane_img, pos.X -15, pos.Y - 15,null);
+        });
+        dpanel_Main.Draw(back);
+        return null;
+    }
+
 
     // Show dicing animation, with result given, dice_result -> [1,6]
     private boolean dice_Animation(int dice_result, Runnable finish_callback) {
         synchronized (dicing_lock) {
-            if(dicing) return false; // If a dicing task is doing, reject this try
+            if (dicing) return false; // If a dicing task is doing, reject this try
             dicing = true;
 
             var timer = new Timer();
@@ -141,14 +183,14 @@ public class formMain {
                         dpanel_Dice.Draw(getResultImage(dice_result));
                         label_status.setText(convertToMultiline("Round " + dice_round + " ends.\nYou get " + dice_result + "!"));
                         timer.cancel();
-                        synchronized (dicing_lock){
+                        synchronized (dicing_lock) {
                             dicing = false; // reset dicing task flag
                         }
-                        if(finish_callback != null)
+                        if (finish_callback != null)
                             finish_callback.run();
                         return;
                     }
-                    label_status.setText(convertToMultiline("Round " + dice_round +".\nYou are dicing" + ".".repeat(count % 3 + 2)));
+                    label_status.setText(convertToMultiline("Round " + dice_round + ".\nYou are dicing" + ".".repeat(count % 3 + 2)));
                     // Animation loop
                     dpanel_Dice.Draw(getAnimationImage(count));
                 }
@@ -189,8 +231,7 @@ public class formMain {
         father_container.add(dPanel, BorderLayout.CENTER);
     }
 
-    private static String convertToMultiline(String orig)
-    {
+    private static String convertToMultiline(String orig) {
         return "<html>" + orig.replaceAll("\n", "<br>");
     }
 
