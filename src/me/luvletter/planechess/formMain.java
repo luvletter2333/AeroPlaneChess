@@ -126,43 +126,48 @@ public class formMain {
         return null;
     }
 
+
+    private ChessBoardStatus last_cbs;
+ //   private ArrayList<Animation>
     private Object cb_update_chessboard(ChessBoardStatus cbs) {
         BufferedImage back = Resource.copyImage(Resource.getResource(ResourceType.ChessBoard));
         var g = back.getGraphics();
         var pst = cbs.getPosition();
-        var counter = new Counter();
         var hangerDrawHelper = new HangerDrawHelper();
 
         pst.forEach((key, rpos) -> {
             System.out.println(key + " " + rpos);
-            final int player = key % 10; // rom 1 to 4
-            final int plane_id = key / 10; // from 1 to 4
-            Point pos;
-            if (rpos % 100 == 0) {
-                // in its hangar
-                pos = hangerDrawHelper.getPoint(rpos);
-            } else
-                pos = switch (player) {
+            // key -> 24 means the fourth plane of player 2
+            final int player = key / 10; // from 1 to 4
+            final Point pos = (rpos % 100 == 0) ? hangerDrawHelper.getPoint(rpos)
+                    : switch (player) {
                     case 1 -> PositionList.RedPositions.get(rpos).Point;
                     case 2 -> PositionList.YellowPositions.get(rpos).Point;
                     case 3 -> PositionList.BluePositions.get(rpos).Point;
                     case 4 -> PositionList.GreenPositions.get(rpos).Point;
                     default -> null;
                 };
-            BufferedImage plane_img = switch (player) {
-                case 1 -> Resource.getResource(ResourceType.Red_Plane);
-                case 2 -> Resource.getResource(ResourceType.Yellow_Plane);
-                case 3 -> Resource.getResource(ResourceType.Blue_Plane);
-                case 4 -> Resource.getResource(ResourceType.Green_Plane);
-                default -> null;
-            };
             System.out.println(pos);
-            g.drawImage(plane_img, pos.X -15, pos.Y - 15,null);
+            drawPlane(g, pos, player);
         });
         dpanel_Main.Draw(back);
         return null;
     }
 
+    /**
+     * planeColor: 1,2,3,4 => Red, Yellow, Blue, Green
+     * */
+    private static void drawPlane(Graphics g, Point phyPoint, int planeColor){
+        BufferedImage plane_img = switch (planeColor) {
+            case 1 -> Resource.getResource(ResourceType.Red_Plane);
+            case 2 -> Resource.getResource(ResourceType.Yellow_Plane);
+            case 3 -> Resource.getResource(ResourceType.Blue_Plane);
+            case 4 -> Resource.getResource(ResourceType.Green_Plane);
+            default -> null;
+        };
+        g.drawImage(plane_img, phyPoint.X - 10, phyPoint.Y - 10, 20, 20, null);
+        // scale 30x30 -> 20x20
+    }
 
     // Show dicing animation, with result given, dice_result -> [1,6]
     private boolean dice_Animation(int dice_result, Runnable finish_callback) {
