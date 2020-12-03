@@ -1,6 +1,6 @@
 package me.luvletter.planechess.client;
 
-public class Counter {
+class Counter {
     private int value = 0;
 
     /**
