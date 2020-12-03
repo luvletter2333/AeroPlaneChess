@@ -45,7 +45,7 @@ public class Main {
             public void run() {
                 internalServer.forceupdate();
             }
-        }, 3000);
+        }, 1500);
 
     }
 
