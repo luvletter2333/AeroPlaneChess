@@ -1,11 +1,22 @@
 package me.luvletter.planechess.server;
 
+import me.luvletter.planechess.event.EventManager;
+import me.luvletter.planechess.event.eventargs.AllowDiceEvent;
+import me.luvletter.planechess.event.eventargs.ShowOtherDiceEvent;
+import me.luvletter.planechess.event.eventargs.UpdateChessboardEvent;
+
 import java.util.*;
 
 public class InternalGame extends Game {
 
+    private EventManager eventManager;
     public InternalGame(int player_Count) {
         super(player_Count);
+        eventManager = new EventManager();
+    }
+
+    public EventManager getEventManager() {
+        return eventManager;
     }
 
     @Override
@@ -45,12 +56,18 @@ public class InternalGame extends Game {
         return cb;
     }
 
-    public void Allow_Dice(){
-        if(runnable_allow_dice != null)
-            runnable_allow_dice.run();
+    @Override
+    protected void UpdateChessBoard() {
+        eventManager.put(new UpdateChessboardEvent(getChessboard()));
     }
 
-    public void forceupdate() {
-        runnable_update_chessboard.apply(getChessboard());
+    @Override
+    protected void AllowDice() {
+        eventManager.put(new AllowDiceEvent());
+    }
+
+    @Override
+    protected void ShowOtherDiceResult() {
+        eventManager.put(new ShowOtherDiceEvent(PlayerColor.Red, 13));
     }
 }

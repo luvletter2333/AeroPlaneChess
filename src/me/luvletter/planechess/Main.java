@@ -1,6 +1,7 @@
 package me.luvletter.planechess;
 
 import me.luvletter.planechess.client.Resource;
+import me.luvletter.planechess.event.EventManager;
 import me.luvletter.planechess.server.InternalGame;
 
 import javax.swing.*;
@@ -29,7 +30,7 @@ public class Main {
 
         var internalServer = new InternalGame(2);
 
-        var form = new formMain(internalServer);
+        var form = new formMain(internalServer, eventManager);
         var gui = new JFrame("Test App");
         gui.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         gui.setSize(800, 750);

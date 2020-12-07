@@ -1,11 +1,5 @@
 package me.luvletter.planechess;
 
-import me.luvletter.planechess.client.*;
-import me.luvletter.planechess.client.Point;
-import me.luvletter.planechess.eventargs.Show_Other_Dice_EventArg;
-import me.luvletter.planechess.server.ChessBoardStatus;
-import me.luvletter.planechess.server.Game;
-
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
@@ -13,6 +7,16 @@ import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.util.Timer;
 import java.util.TimerTask;
+
+import me.luvletter.planechess.client.*;
+import me.luvletter.planechess.client.Point;
+import me.luvletter.planechess.event.EventManager;
+import me.luvletter.planechess.event.eventargs.DiceAnimationEvent;
+import me.luvletter.planechess.event.eventargs.ShowOtherDiceEvent;
+import me.luvletter.planechess.event.eventargs.UpdateChessboardEvent;
+import me.luvletter.planechess.server.ChessBoardStatus;
+import me.luvletter.planechess.server.Game;
+import me.luvletter.planechess.event.Event;
 
 import static me.luvletter.planechess.client.DrawHelper.drawPlane;
 
@@ -52,9 +56,15 @@ public class formMain {
 
     private Game game_server;
 
-    public formMain(Game game_server) {
+    private EventManager eventManager;
+    private Thread ui_thread;
+
+
+
+    public formMain(Game game_server, EventManager eventManager) {
         super();
         this.game_server = game_server;
+        this.eventManager = eventManager;
 
         dpanel_Main = new Drawable_JPanel();
         dpanel_Dice = new Drawable_JPanel();
@@ -65,9 +75,9 @@ public class formMain {
         dpanel_Main.Draw(Resource.getResource(ResourceType.ChessBoard));
         dpanel_Dice.Draw(Resource.getResource(ResourceType.Dice_Unknown));
 
-        game_server.addCallback_Allow_Dice(this::cb_allow_Dice);
-        game_server.addCallback_Show_Other_Dice(this::cb_show_other_Dice_Animation);
-        game_server.addCallback_update_chessboard(this::cb_update_chessboard);
+        //game_server.addCallback_Allow_Dice(this::cb_allow_Dice);
+        //game_server.addCallback_Show_Other_Dice(this::cb_show_other_Dice_Animation);
+        //game_server.addCallback_update_chessboard(this::cb_update_chessboard);
 
         //    btn_dice.setEnabled(false);
         btn_dice.addActionListener(actionEvent -> {
@@ -107,10 +117,23 @@ public class formMain {
                 //   System.out.println(ps);
             }
         });
+        ui_thread = new Thread(() -> {
+            me.luvletter.planechess.event.Event e;
+            while(true) {
+                e = eventManager.get();
+                switch (e.getType()){
+                    case AllowDice: allow_Dice();
+                    case ShowOtherDiceEvent: show_other_Dice_Animation((ShowOtherDiceEvent) e);
+                    case UpdateChessboard: update_chessboard((UpdateChessboardEvent) e);
+                    case DiceAnimation: dice_Animation((DiceAnimationEvent) e);
+                }
+            }
+        });
+        ui_thread.start();
     }
 
-    // Callback for server
-    private void cb_allow_Dice() {
+    // Events
+    private void allow_Dice() {
         //  dicing_status = 0;
         first_dice_result = 0;
         second_dice_result = 0;
@@ -118,14 +141,14 @@ public class formMain {
         btn_dice.setEnabled(true);
     }
 
-    private Object cb_show_other_Dice_Animation(Show_Other_Dice_EventArg args) {
-        return null;
-    }
+    private void show_other_Dice_Animation(ShowOtherDiceEvent e) {
 
+    }
 
     private ChessBoardStatus last_cbs;
  //   private ArrayList<Animation>
-    private Object cb_update_chessboard(ChessBoardStatus cbs) {
+    private void update_chessboard(UpdateChessboardEvent e) {
+        ChessBoardStatus cbs = e.cbs;
         BufferedImage back = Resource.copyImage(Resource.getResource(ResourceType.ChessBoard));
         var g = back.getGraphics();
         var pst = cbs.getPlanePosition();
@@ -147,12 +170,14 @@ public class formMain {
             drawPlane(g, pos, player);
         });
         dpanel_Main.Draw(back);
-        return null;
+        last_cbs = cbs;
     }
 
-
-    // Show dicing animation, with result given, dice_result -> [1,6]
-    private void dice_Animation(int dice_result, Runnable finish_callback) {
+    // Show dicing animation
+    private void dice_Animation(DiceAnimationEvent e) {
+        this.first_dice_result = e.firstResult;
+        this.second_dice_result = e.secondResult;
+        // TODO: modify dice_Animation with Single thread model
         synchronized (dicing_lock) {
             if (dicing) return; // If a dicing task is doing, reject this try
             dicing = true;
