@@ -1,5 +1,6 @@
 package me.luvletter.planechess.server;
 
+import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.LinkedHashMap;
 import java.util.Random;
@@ -27,23 +28,23 @@ public class InternalGame extends Game {
     @Override
     public ChessBoardStatus getChessboard() {
         var cb = new ChessBoardStatus(4,new LinkedHashMap<>(){{
-            put(11,100);
+            put(11,101);
             put(12,100);
             put(13,100);
             put(14,100);
-            put(21,200);
+            put(21,205);
             put(22,200);
             put(23,200);
             put(24,200);
-            put(31,300);
+            put(31,307);
             put(32,300);
             put(33,300);
             put(34,300);
             put(41,400);
             put(42,400);
-            put(43,400);
+            put(43,418);
             put(44,400);
-        }});
+        }},new HashMap<>());
         return cb;
     }
 

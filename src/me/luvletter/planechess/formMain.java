@@ -5,19 +5,16 @@ import me.luvletter.planechess.client.Point;
 import me.luvletter.planechess.eventargs.Show_Other_Dice_EventArg;
 import me.luvletter.planechess.server.ChessBoardStatus;
 import me.luvletter.planechess.server.Game;
-import me.luvletter.planechess.server.PlayerColor;
 
-import javax.print.attribute.standard.JobKOctets;
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
-import java.nio.Buffer;
 import java.util.Timer;
 import java.util.TimerTask;
+
+import static me.luvletter.planechess.client.DrawHelper.drawPlane;
 
 public class formMain {
     public JPanel panel_Main;
@@ -61,7 +58,6 @@ public class formMain {
 
         dpanel_Main = new Drawable_JPanel();
         dpanel_Dice = new Drawable_JPanel();
-
 
         register_Canvas(dpanel_Main, panel_canvas_container_main);
         register_Canvas(dpanel_Dice, panel_canvas_container_dice);
@@ -154,25 +150,11 @@ public class formMain {
         return null;
     }
 
-    /**
-     * planeColor: 1,2,3,4 => Red, Yellow, Blue, Green
-     * */
-    private static void drawPlane(Graphics g, Point phyPoint, int planeColor){
-        BufferedImage plane_img = switch (planeColor) {
-            case 1 -> Resource.getResource(ResourceType.Red_Plane);
-            case 2 -> Resource.getResource(ResourceType.Yellow_Plane);
-            case 3 -> Resource.getResource(ResourceType.Blue_Plane);
-            case 4 -> Resource.getResource(ResourceType.Green_Plane);
-            default -> null;
-        };
-        g.drawImage(plane_img, phyPoint.X - 10, phyPoint.Y - 10, 20, 20, null);
-        // scale 30x30 -> 20x20
-    }
 
     // Show dicing animation, with result given, dice_result -> [1,6]
-    private boolean dice_Animation(int dice_result, Runnable finish_callback) {
+    private void dice_Animation(int dice_result, Runnable finish_callback) {
         synchronized (dicing_lock) {
-            if (dicing) return false; // If a dicing task is doing, reject this try
+            if (dicing) return; // If a dicing task is doing, reject this try
             dicing = true;
 
             var timer = new Timer();
@@ -226,7 +208,6 @@ public class formMain {
                     };
                 }
             }, 50, 200);
-            return true;
         }
     }
 
