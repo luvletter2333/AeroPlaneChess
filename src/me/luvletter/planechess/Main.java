@@ -4,6 +4,7 @@ import me.luvletter.planechess.client.Resource;
 import me.luvletter.planechess.server.InternalGame;
 
 import javax.swing.*;
+import java.util.ArrayList;
 import java.util.TimerTask;
 
 public class Main {

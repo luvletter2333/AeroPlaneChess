@@ -128,7 +128,7 @@ public class formMain {
     private Object cb_update_chessboard(ChessBoardStatus cbs) {
         BufferedImage back = Resource.copyImage(Resource.getResource(ResourceType.ChessBoard));
         var g = back.getGraphics();
-        var pst = cbs.getPosition();
+        var pst = cbs.getPlanePosition();
         var hangerDrawHelper = new HangerDrawHelper();
 
         pst.forEach((key, rpos) -> {

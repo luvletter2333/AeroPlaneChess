@@ -15,5 +15,6 @@
 
 #### Additional Rules
 
--  
+-  ~~Bonus Dice~~
+- 
 

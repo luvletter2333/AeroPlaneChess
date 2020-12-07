@@ -1,8 +1,9 @@
 package me.luvletter.planechess.client;
 
+import java.util.Base64;
 import java.util.HashMap;
 
-public class PositionList {
+public final class PositionList {
     /**
      * 1xx
      * */
@@ -107,4 +108,10 @@ public class PositionList {
         put(419, new Position(419, 336, 305));
     }};
 
+    public static final HashMap<Integer, Position> all = new HashMap<>(){{
+        putAll(RedPositions);
+        putAll(YellowPositions);
+        putAll(BluePositions);
+        putAll(GreenPositions);
+    }};
 }

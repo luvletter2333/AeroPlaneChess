@@ -1,9 +1,6 @@
 package me.luvletter.planechess.server;
 
-import java.util.HashMap;
-import java.util.Hashtable;
-import java.util.LinkedHashMap;
-import java.util.Random;
+import java.util.*;
 
 public class InternalGame extends Game {
 
@@ -44,7 +41,7 @@ public class InternalGame extends Game {
             put(42,400);
             put(43,418);
             put(44,400);
-        }},new HashMap<>());
+        }},new HashMap<>(), new ArrayList<>());
         return cb;
     }
 
