@@ -1,11 +1,14 @@
 package me.luvletter.planechess;
 
 import me.luvletter.planechess.client.Resource;
-import me.luvletter.planechess.event.EventManager;
+import me.luvletter.planechess.server.ChessBoardStatus;
 import me.luvletter.planechess.server.InternalGame;
 
 import javax.swing.*;
+import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.TimerTask;
 
 public class Main {
@@ -28,26 +31,35 @@ public class Main {
         // Load Resources
         Resource.loadResources();
 
-        var internalServer = new InternalGame(2);
+        var tmp_player_list = new ArrayList<Integer>();
+        tmp_player_list.add(1);
+        tmp_player_list.add(2);
+        var internalServer = new InternalGame(2, tmp_player_list);
 
-        var form = new formMain(internalServer, eventManager);
+
+        var form = new formMain(internalServer, internalServer.getClientEventManager());
         var gui = new JFrame("Test App");
         gui.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         gui.setSize(800, 750);
         gui.setContentPane(form.panel_Main);
-
-
-       // form.dpanel_Main.Draw(Resource.getResource(ResourceType.ChessBoard));
-        //form.dpanel_Dice.Draw(Resource.getResource(ResourceType.Dice_Unknown));
 
         gui.setVisible(true);
 
         new java.util.Timer().schedule(new TimerTask() {
             @Override
             public void run() {
-                internalServer.forceupdate();
+                internalServer.UpdateClientChessBoard();
             }
         }, 1500);
+
+        new java.util.Timer().schedule(new TimerTask() {
+            @Override
+            public void run() {
+                cb.getPlanePosition().remove(33);
+                cb.getPlanePosition().put(33,303);
+                internalServer.UpdateClientChessBoard();
+            }
+        }, 4500);
 
     }
 

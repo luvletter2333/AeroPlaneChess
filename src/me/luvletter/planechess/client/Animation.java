@@ -5,34 +5,59 @@ import me.luvletter.planechess.server.ChessBoardStatus;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.Map;
-import java.util.Timer;
 import java.util.function.Function;
 
 class Animation {
-    private final Timer timer;
-    private final ChessBoardStatus lastStatus;
+    private final ChessBoardStatus startStatus;
     private final ChessBoardStatus endStatus;
     private final ArrayList<Movement> movements;
-    private final Function<BufferedImage, Object> updateUI;
+    private final ArrayList<Movement> eat_movements;
+    private final DrawHelper drawHelper;
+    private BufferedImage base_image;
 
     public Animation(ChessBoardStatus lastStatus,
-                     ChessBoardStatus endStatus,
-                     Function<BufferedImage, Object> updateUI){
-        this.lastStatus = lastStatus;
+                     ChessBoardStatus endStatus){
+        this.startStatus = lastStatus;
         this.endStatus = endStatus;
-        this.timer = new Timer();
         this.movements = new ArrayList<>();
-        this.updateUI = updateUI;
+        this.eat_movements = new ArrayList<>();
+        this.drawHelper = new DrawHelper();
         //compare and give out which plane(s) need to be moved
-        compareStatus();
+        var list =  compareStatus();
         System.out.println(movements);
-        //timer.
+        generateBaseImage(list);
     }
 
-    private void compareStatus(){
-        var startposs = lastStatus.getPlanePosition();
-        var endposs = endStatus.getPlanePosition();
+    /**
+     * Generate Base Image to Reduce drawing time;
+     * */
+    private void generateBaseImage(ArrayList<Integer> not_move_list) {
+        not_move_list.forEach(plane_id -> {
+            drawHelper.Draw(plane_id, endStatus.getPlanePosition().get(plane_id));
+        });
+        this.base_image = drawHelper.getResultImage();
+    }
+
+    public BufferedImage getBase_image() {
+        return base_image;
+    }
+
+    /**
+     * block thread and draw
+     * */
+    public void Animate(Drawable_JPanel dpanel){
+        //TODO: fill Animate method
+    }
+
+    /**
+     * Compare start_Plane_Positions with end_Plane_Positions, add into movements
+     * Calculate Eat_Movements
+     * @return list containing all planes which are not going to move.
+     * */
+    private ArrayList<Integer> compareStatus(){
+        var startposs = startStatus.getPlanePosition();
         var iterator = startposs.entrySet().iterator();
+        var list = new ArrayList<Integer>(); // list containing all planes which are not going to move.
         Map.Entry<Integer, Integer> entry;
         while (iterator.hasNext()){
             entry = iterator.next();
@@ -41,14 +66,20 @@ class Animation {
             if(! end_pos.equals(entry.getValue())){
                 // plane moved
                 var move = new Movement(entry.getKey(), entry.getValue(), end_pos);
+                movements.add(move);
+                System.out.println(move);
+            }
+            else{ //not moved, add to list
+                list.add(entry.getKey());
             }
         }
+        return list;
     }
 
     class Movement{
-        private Integer plane_id;
-        private Position start_position;
-        private Position end_position;
+        private final Integer plane_id;
+        private final Position start_position;
+        private final Position end_position;
         public int step;
         public final static int MAX_STEP = 5;
         public Movement(Integer plane_id, Integer start_pos, Integer end_pos){

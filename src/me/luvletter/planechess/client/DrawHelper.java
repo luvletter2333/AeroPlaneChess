@@ -19,4 +19,35 @@ public class DrawHelper {
         // scale 30x30 -> 20x20
     }
 
+    private final BufferedImage ResultImage;
+    private final Graphics g;
+    private final HangerDrawHelper hangerDrawHelper;
+
+    public DrawHelper(){
+        this.ResultImage = Resource.copyImage(Resource.getResource(ResourceType.ChessBoard));
+        g = this.ResultImage.getGraphics();
+        this.hangerDrawHelper = new HangerDrawHelper();
+    }
+
+    public BufferedImage getResultImage() {
+        return ResultImage;
+    }
+
+    public HangerDrawHelper getHangerDrawHelper() {
+        return hangerDrawHelper;
+    }
+
+    public void Draw(int pos_id, int raw_position_id){
+        // key -> 24 means the fourth plane of player 2
+        final int player = pos_id / 10; // from 1 to 4
+        final Point pos = (raw_position_id % 100 == 0) ? hangerDrawHelper.getPoint(raw_position_id)
+                : switch (player) {
+            case 1 -> PositionList.RedPositions.get(raw_position_id).Point;
+            case 2 -> PositionList.YellowPositions.get(raw_position_id).Point;
+            case 3 -> PositionList.BluePositions.get(raw_position_id).Point;
+            case 4 -> PositionList.GreenPositions.get(raw_position_id).Point;
+            default -> null;
+        };
+        drawPlane(g, pos, player);
+    }
 }

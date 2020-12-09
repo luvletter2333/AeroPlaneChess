@@ -5,69 +5,68 @@ import me.luvletter.planechess.event.eventargs.AllowDiceEvent;
 import me.luvletter.planechess.event.eventargs.ShowOtherDiceEvent;
 import me.luvletter.planechess.event.eventargs.UpdateChessboardEvent;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
 
 public class InternalGame extends Game {
 
-    private EventManager eventManager;
-    public InternalGame(int player_Count) {
-        super(player_Count);
-        eventManager = new EventManager();
+    private EventManager clientEventManager;
+    public InternalGame(int player_Count, ArrayList<Integer> player_ids) {
+        super(player_Count, player_ids);
+        clientEventManager = new EventManager();
     }
 
-    public EventManager getEventManager() {
-        return eventManager;
-    }
-
-    @Override
-    public int rolling_Dice() {
-        var random =  new Random();
-        int first = random.nextInt(6) + 1;
-        int second = random.nextInt(6) + 1;
-        return first * 10 + second;
-  //      return new Random().nextInt(6) + 1;
+    public EventManager getClientEventManager() {
+        return clientEventManager;
     }
 
     @Override
-    public void move(int plane_id, int step) {
+    public int rolling_Dice(int player_id) {
+        this.dice_player_id = player_id;
+        this.dice_moved = false;
+        this.dice_first_result = this.dice_random.nextInt(6) + 1;
+        this.dice_second_result = this.dice_random.nextInt(6) + 1;
+        return this.dice_first_result * 10 + this.dice_second_result;
+    }
+
+    @Override
+    public boolean move(int plane_id, int step) {
+        if(this.dice_player_id != plane_id / 10) // not your turn!!
+            return false;
+        if(this.dice_moved)     // you have moved!!
+            return false;
+        // Anti-Cheat done!
+        // validate step
+        // TODO: Valid Step with first and second dice result
+        //this.cbs.getPlanePosition().get
+        this.dice_moved = true;
+        return true;
+    }
+
+    /**
+     * For Test Only
+     * */
+    public void forceMove(int plane_id, int position, boolean immediate_update){
 
     }
 
     @Override
-    public ChessBoardStatus getChessboard() {
-        var cb = new ChessBoardStatus(4,new LinkedHashMap<>(){{
-            put(11,101);
-            put(12,100);
-            put(13,100);
-            put(14,100);
-            put(21,205);
-            put(22,200);
-            put(23,200);
-            put(24,200);
-            put(31,307);
-            put(32,300);
-            put(33,300);
-            put(34,300);
-            put(41,400);
-            put(42,400);
-            put(43,418);
-            put(44,400);
-        }},new HashMap<>(), new ArrayList<>());
-        return cb;
+    public ChessBoardStatus getChessboardStatus() {
+        return new ChessBoardStatus(this.Player_Count, this.planePosition, this.planeStacks);
     }
 
     @Override
-    protected void UpdateChessBoard() {
-        eventManager.put(new UpdateChessboardEvent(getChessboard()));
+    public void UpdateClientChessBoard() {
+        clientEventManager.push(new UpdateChessboardEvent(getChessboardStatus()));
     }
 
     @Override
     protected void AllowDice() {
-        eventManager.put(new AllowDiceEvent());
+        clientEventManager.push(new AllowDiceEvent());
     }
 
     @Override
     protected void ShowOtherDiceResult() {
-        eventManager.put(new ShowOtherDiceEvent(PlayerColor.Red, 13));
+        clientEventManager.push(new ShowOtherDiceEvent(PlayerColor.Red, 13));
     }
 }

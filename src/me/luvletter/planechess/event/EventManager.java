@@ -11,7 +11,7 @@ public class EventManager {
         this.blockingQueue = new LinkedBlockingQueue<>(10);
     }
 
-    public void put(Event e){
+    public void push(Event e){
         try {
             blockingQueue.put(e);
         } catch (InterruptedException interruptedException) {

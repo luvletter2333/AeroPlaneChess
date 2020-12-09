@@ -3,14 +3,19 @@ package me.luvletter.planechess.client;
 import java.util.HashMap;
 import java.util.Hashtable;
 
-public class HangerDrawHelper {
-    private HashMap<Integer, Counter> helper = new HashMap<>();
+public class HangerDrawHelper implements Cloneable {
+    private final HashMap<Integer, Counter> helper;
 
     public HangerDrawHelper() {
+        helper = new HashMap<>();
         helper.put(1, new Counter());
         helper.put(2, new Counter());
         helper.put(3, new Counter());
         helper.put(4, new Counter());
+    }
+
+    private HangerDrawHelper(HashMap<Integer, Counter> map){
+        this.helper = map;
     }
 
     /**
@@ -22,6 +27,16 @@ public class HangerDrawHelper {
         int cnt = helper.get(id).increase();
         int map_id = id * 10 + cnt;
         return HangerPosition.get(map_id);
+    }
+
+    @Override
+    public HangerDrawHelper clone(){
+        var newHashMap = new HashMap<Integer, Counter>();
+        newHashMap.put(1, this.helper.get(1).clone());
+        newHashMap.put(2, this.helper.get(2).clone());
+        newHashMap.put(3, this.helper.get(3).clone());
+        newHashMap.put(4, this.helper.get(4).clone());
+        return new HangerDrawHelper(newHashMap);
     }
 
     public final static HashMap<Integer, Point> HangerPosition = new HashMap<>() {{
@@ -46,3 +61,37 @@ public class HangerDrawHelper {
         put(44, new Point(502, 575));
     }};
 }
+
+class Counter implements Cloneable {
+    private int value = 0;
+
+    public Counter(){
+
+    }
+
+    private Counter(int value){
+        this.value = value;
+    }
+
+    /**
+     * from 1
+     * */
+    public int increase(){
+        value++;
+        return value;
+    }
+
+    public int getValue() {
+        return value;
+    }
+
+    public void clear(){
+        value = 0;
+    }
+
+    @Override
+    public Counter clone() {
+        return new Counter(this.value);
+    }
+}
+

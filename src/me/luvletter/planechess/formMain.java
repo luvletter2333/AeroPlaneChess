@@ -4,21 +4,16 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.image.BufferedImage;
-import java.util.Timer;
-import java.util.TimerTask;
 
 import me.luvletter.planechess.client.*;
-import me.luvletter.planechess.client.Point;
 import me.luvletter.planechess.event.EventManager;
 import me.luvletter.planechess.event.eventargs.DiceAnimationEvent;
 import me.luvletter.planechess.event.eventargs.ShowOtherDiceEvent;
 import me.luvletter.planechess.event.eventargs.UpdateChessboardEvent;
 import me.luvletter.planechess.server.ChessBoardStatus;
 import me.luvletter.planechess.server.Game;
-import me.luvletter.planechess.event.Event;
 
-import static me.luvletter.planechess.client.DrawHelper.drawPlane;
+import static me.luvletter.planechess.client.DiceAnimationHelper.*;
 
 public class formMain {
     public JPanel panel_Main;
@@ -50,7 +45,7 @@ public class formMain {
     private int first_dice_result = 0;
     private int second_dice_result = 0;
     private boolean dicing = false;
-    private final Object dicing_lock = new Object(); // Dicing lock
+    //private final Object dicing_lock = new Object(); // Dicing lock
 
     private final Object board_drawing_lock = new Object(); // Main Canvas Drawing Lock
 
@@ -81,30 +76,10 @@ public class formMain {
 
         //    btn_dice.setEnabled(false);
         btn_dice.addActionListener(actionEvent -> {
-            btn_dice.setEnabled(false);
-            dice_round = 1;
-            int result = game_server.rolling_Dice();
-            first_dice_result = result / 10;
-            second_dice_result = result % 10;
-
-            label_Down.setText("Dicing Round 1! Good luck~");
-            dice_Animation(first_dice_result, () -> {
-                label_Down.setText("Dicing Round 2 is coming~");
-                // First round finished
-                dice_round = 2;
-                new Timer().schedule(new TimerTask() {
-                    @Override
-                    public void run() {
-                        dice_Animation(second_dice_result, () -> {
-                            label_Down.setText("Dicing Round 2 ends.");
-                            label_status.setText(convertToMultiline(
-                                    "Round 1: " + first_dice_result +
-                                            "\nRound 2: " + second_dice_result +
-                                            "\nPlease click your plane to fly~"));
-                        });
-                    }
-                }, 3000);
-            });
+            int result = game_server.rolling_Dice(1);
+            int first = result / 10;
+            int second = result % 10;
+            this.eventManager.push(new DiceAnimationEvent(first, second));
         });
 
         dpanel_Main.addMouseListener(new MouseAdapter() {
@@ -120,12 +95,17 @@ public class formMain {
         ui_thread = new Thread(() -> {
             me.luvletter.planechess.event.Event e;
             while(true) {
-                e = eventManager.get();
-                switch (e.getType()){
-                    case AllowDice: allow_Dice();
-                    case ShowOtherDiceEvent: show_other_Dice_Animation((ShowOtherDiceEvent) e);
-                    case UpdateChessboard: update_chessboard((UpdateChessboardEvent) e);
-                    case DiceAnimation: dice_Animation((DiceAnimationEvent) e);
+                try {
+                    e = eventManager.get();
+                    switch (e.getType()) {
+                        case AllowDice:  allow_Dice(); break;
+                        case ShowOtherDiceEvent: show_other_Dice_Animation((ShowOtherDiceEvent) e); break;
+                        case UpdateChessboard:  update_chessboard((UpdateChessboardEvent) e); break;
+                        case DiceAnimation: dice_Animation((DiceAnimationEvent) e); break;
+                    }
+                }
+                catch (Exception ex){
+                    ex.printStackTrace();
                 }
             }
         });
@@ -135,10 +115,10 @@ public class formMain {
     // Events
     private void allow_Dice() {
         //  dicing_status = 0;
-        first_dice_result = 0;
-        second_dice_result = 0;
-        dice_round = 1;
-        btn_dice.setEnabled(true);
+        this.first_dice_result = 0;
+        this.second_dice_result = 0;
+        this.dice_round = 1;
+        this.btn_dice.setEnabled(true);
     }
 
     private void show_other_Dice_Animation(ShowOtherDiceEvent e) {
@@ -146,104 +126,48 @@ public class formMain {
     }
 
     private ChessBoardStatus last_cbs;
- //   private ArrayList<Animation>
+    //private ArrayList<Animation>
     private void update_chessboard(UpdateChessboardEvent e) {
         ChessBoardStatus cbs = e.cbs;
-        BufferedImage back = Resource.copyImage(Resource.getResource(ResourceType.ChessBoard));
-        var g = back.getGraphics();
-        var pst = cbs.getPlanePosition();
-        var hangerDrawHelper = new HangerDrawHelper();
+        if(last_cbs == null){
+            // first draw
+            var pst = cbs.getPlanePosition();
+            var drawer = new DrawHelper();
+            pst.forEach((key, rpos) -> {
+                drawer.Draw(key, rpos);
+            });
+            dpanel_Main.Draw(drawer.getResultImage());
+            last_cbs = cbs;
+            System.out.println("first drawing finished!!");
+        }
 
-        pst.forEach((key, rpos) -> {
-            System.out.println(key + " " + rpos);
-            // key -> 24 means the fourth plane of player 2
-            final int player = key / 10; // from 1 to 4
-            final Point pos = (rpos % 100 == 0) ? hangerDrawHelper.getPoint(rpos)
-                    : switch (player) {
-                    case 1 -> PositionList.RedPositions.get(rpos).Point;
-                    case 2 -> PositionList.YellowPositions.get(rpos).Point;
-                    case 3 -> PositionList.BluePositions.get(rpos).Point;
-                    case 4 -> PositionList.GreenPositions.get(rpos).Point;
-                    default -> null;
-                };
-            System.out.println(pos);
-            drawPlane(g, pos, player);
-        });
-        dpanel_Main.Draw(back);
-        last_cbs = cbs;
     }
 
     // Show dicing animation
     private void dice_Animation(DiceAnimationEvent e) {
+        this.btn_dice.setEnabled(false);
         this.first_dice_result = e.firstResult;
         this.second_dice_result = e.secondResult;
-        // TODO: modify dice_Animation with Single thread model
-        synchronized (dicing_lock) {
-            if (dicing) return; // If a dicing task is doing, reject this try
-            dicing = true;
+        this.label_Down.setText("Dicing Round 1! Good luck~");
+        this.dice_round = 1;
+        if (dicing) return; // If a dicing task is doing, reject this try
+        dicing = true;
 
-            var timer = new Timer();
-            timer.scheduleAtFixedRate(new TimerTask() {
-                int count = 0;
-                final int total_count = 9; //show 8 animation picture, then the result
+        diceAnimate(label_status, dpanel_Dice, this.first_dice_result, 1);
 
-                @Override
-                public void run() {
-                    count++;
-                    if (count == total_count) {
-                        // the final loop, show result
-                        dpanel_Dice.Draw(getResultImage(dice_result));
-                        label_status.setText(convertToMultiline("Round " + dice_round + " ends.\nYou get " + dice_result + "!"));
-                        timer.cancel();
-                        synchronized (dicing_lock) {
-                            dicing = false; // reset dicing task flag
-                        }
-                        if (finish_callback != null)
-                            finish_callback.run();
-                        return;
-                    }
-                    label_status.setText(convertToMultiline("Round " + dice_round + ".\nYou are dicing" + ".".repeat(count % 3 + 2)));
-                    // Animation loop
-                    dpanel_Dice.Draw(getAnimationImage(count));
-                }
-
-                private BufferedImage getAnimationImage(int _count) {
-                    return switch (_count) {
-                        case 1 -> Resource.getResource(ResourceType.Dice_Rolling1);
-                        case 2 -> Resource.getResource(ResourceType.Dice_Rolling2);
-                        case 3 -> Resource.getResource(ResourceType.Dice_Rolling3);
-                        case 4 -> Resource.getResource(ResourceType.Dice_Rolling4);
-                        case 5 -> Resource.getResource(ResourceType.Dice_Rolling5);
-                        case 6 -> Resource.getResource(ResourceType.Dice_Rolling6);
-                        case 7 -> Resource.getResource(ResourceType.Dice_Rolling7);
-                        case 8 -> Resource.getResource(ResourceType.Dice_Rolling8);
-                        default -> Resource.getResource(ResourceType.Dice_Unknown);
-                    };
-                }
-
-                private BufferedImage getResultImage(int result) {
-                    return switch (result) {
-                        case 1 -> Resource.getResource(ResourceType.Dice_Rolled1);
-                        case 2 -> Resource.getResource(ResourceType.Dice_Rolled2);
-                        case 3 -> Resource.getResource(ResourceType.Dice_Rolled3);
-                        case 4 -> Resource.getResource(ResourceType.Dice_Rolled4);
-                        case 5 -> Resource.getResource(ResourceType.Dice_Rolled5);
-                        case 6 -> Resource.getResource(ResourceType.Dice_Rolled6);
-                        default -> Resource.getResource(ResourceType.Dice_Unknown);
-                    };
-                }
-            }, 50, 200);
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException interruptedException) {
+            interruptedException.printStackTrace();
         }
+        diceAnimate(label_status, dpanel_Dice, this.second_dice_result, 2);
+        dicing = false;
     }
 
     // Please make sure `father_container` has BorderLayout!!!!
     // Show https://intellij-support.jetbrains.com/hc/en-us/community/posts/360003406579-Drawing-on-a-JPanel-of-a-form
     private void register_Canvas(Drawable_JPanel dPanel, JPanel father_container) {
         father_container.add(dPanel, BorderLayout.CENTER);
-    }
-
-    private static String convertToMultiline(String orig) {
-        return "<html>" + orig.replaceAll("\n", "<br>");
     }
 
 }
