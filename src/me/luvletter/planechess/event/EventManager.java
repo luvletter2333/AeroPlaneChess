@@ -27,4 +27,9 @@ public class EventManager {
             return null;
         }
     }
+
+    public int size()
+    {
+        return this.blockingQueue.size();
+    }
 }

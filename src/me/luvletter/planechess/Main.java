@@ -48,16 +48,18 @@ public class Main {
         new java.util.Timer().schedule(new TimerTask() {
             @Override
             public void run() {
-                internalServer.UpdateClientChessBoard();
+                internalServer.UpdateClientChessBoard(internalServer.getChessboardStatus());
             }
         }, 1500);
 
         new java.util.Timer().schedule(new TimerTask() {
             @Override
             public void run() {
+                var cb = internalServer.getChessboardStatus();
                 cb.getPlanePosition().remove(33);
                 cb.getPlanePosition().put(33,303);
-                internalServer.UpdateClientChessBoard();
+                internalServer.UpdateClientChessBoard(cb);
+                // TODO: use forceMove to debug
             }
         }, 4500);
 
