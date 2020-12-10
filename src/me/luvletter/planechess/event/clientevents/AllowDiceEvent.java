@@ -1,4 +1,4 @@
-package me.luvletter.planechess.event.eventargs;
+package me.luvletter.planechess.event.clientevents;
 
 import me.luvletter.planechess.event.Event;
 import me.luvletter.planechess.event.EventType;
