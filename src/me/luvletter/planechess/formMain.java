@@ -7,9 +7,9 @@ import java.awt.event.MouseEvent;
 
 import me.luvletter.planechess.client.*;
 import me.luvletter.planechess.event.EventManager;
-import me.luvletter.planechess.event.eventargs.DiceAnimationEvent;
-import me.luvletter.planechess.event.eventargs.ShowOtherDiceEvent;
-import me.luvletter.planechess.event.eventargs.UpdateChessboardEvent;
+import me.luvletter.planechess.event.clientevents.DiceAnimationEvent;
+import me.luvletter.planechess.event.clientevents.ShowOtherDiceEvent;
+import me.luvletter.planechess.event.clientevents.UpdateChessboardEvent;
 import me.luvletter.planechess.server.ChessBoardStatus;
 import me.luvletter.planechess.server.Game;
 
@@ -77,6 +77,10 @@ public class formMain {
         //    btn_dice.setEnabled(false);
         btn_dice.addActionListener(actionEvent -> {
             int result = game_server.rolling_Dice(1);
+            if(result == 0) {
+                System.out.println("last player don't dice and move");
+                return;
+            }
             int first = result / 10;
             int second = result % 10;
             this.eventManager.push(new DiceAnimationEvent(first, second));
@@ -97,6 +101,7 @@ public class formMain {
             while(true) {
                 try {
                     e = eventManager.get();
+                    System.out.println("UI Update Event: Remaining" + eventManager.size() + ", this: " + e.toString());
                     switch (e.getType()) {
                         case AllowDice:  allow_Dice(); break;
                         case ShowOtherDiceEvent: show_other_Dice_Animation((ShowOtherDiceEvent) e); break;
