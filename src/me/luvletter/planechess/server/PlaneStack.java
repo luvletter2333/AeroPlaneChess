@@ -1,15 +1,19 @@
 package me.luvletter.planechess.server;
 
-import java.util.HashSet;
+import java.util.ArrayList;
 
 public class PlaneStack{
-    private final HashSet<Integer> stacked_planes = new HashSet<>();
+    private final ArrayList<Integer> stacked_planes = new ArrayList<>();
 
-    public HashSet<Integer> getStacked_planes() {
+    public ArrayList<Integer> getStacked_planes() {
         return stacked_planes;
     }
 
     public void addPlane(Integer plane_id){
         stacked_planes.add(plane_id);
+    }
+
+    public boolean hasPlane(int plane_id){
+        return stacked_planes.contains(plane_id);
     }
 }
