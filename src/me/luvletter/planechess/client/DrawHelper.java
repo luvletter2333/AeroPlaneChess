@@ -8,7 +8,7 @@ import java.awt.image.BufferedImage;
 public class DrawHelper {
     /**
      * planeColor: 1,2,3,4 => Red, Yellow, Blue, Green
-     * @param plane_id debug only
+     * @param plane_id for debug only
      * */
     public static void drawPlane(Graphics g, Point phyPoint, int planeColor, int plane_id){
         BufferedImage plane_img = switch (planeColor) {
@@ -47,7 +47,7 @@ public class DrawHelper {
     public void Draw(int plane_id, int raw_position_id){
         // key -> 24 means the fourth plane of player 2
         final int player_id = plane_id / 10; // from 1 to 4
-        final Point pos = (raw_position_id % 100 == 0) ? hangerDrawHelper.getPoint(raw_position_id)
+        final Point pos = (raw_position_id % 100 == 99) ? hangerDrawHelper.getPoint(raw_position_id)
                 : switch (player_id) {
             case 1 -> PositionList.RedPositions.get(raw_position_id).Point;
             case 2 -> PositionList.YellowPositions.get(raw_position_id).Point;

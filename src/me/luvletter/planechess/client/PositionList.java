@@ -7,7 +7,7 @@ public final class PositionList {
      * 1xx
      * */
     public static final Map<Integer, Position> RedPositions = Collections.unmodifiableMap(new HashMap<>(20) {{
-        put(100, new Position(100, 71, 537));
+        put(100, new Position(100, 169, 593));
         put(101, new Position(101, 180, 523));
         put(102, new Position(102, 126, 432));
         put(103, new Position(103, 34, 342));
@@ -33,7 +33,7 @@ public final class PositionList {
      * 2xx
      * */
     public static final Map<Integer, Position> YellowPositions = Collections.unmodifiableMap(new HashMap<>(20) {{
-        put(200, new Position(200, 72, 68));
+        put(200, new Position(200, 22, 166));
         put(201, new Position(201, 89, 179));
         put(202, new Position(202, 178, 124));
         put(203, new Position(203, 269, 35));
@@ -59,7 +59,7 @@ public final class PositionList {
      * 3xx
      * */
     public static final Map<Integer, Position> BluePositions = Collections.unmodifiableMap(new HashMap<>(20) {{
-        put(300, new Position(300, 532, 78));
+        put(300, new Position(300, 439, 25));
         put(301, new Position(301, 430, 89));
         put(302, new Position(302, 485, 178));
         put(303, new Position(303, 574, 269));
@@ -85,7 +85,7 @@ public final class PositionList {
      * 4xx
      * */
     public static final Map<Integer, Position> GreenPositions = Collections.unmodifiableMap(new HashMap<>(20) {{
-        put(400, new Position(400, 536, 537));
+        put(400, new Position(400, 592, 444));
         put(401, new Position(401, 520, 430));
         put(402, new Position(402, 430, 485));
         put(403, new Position(403, 341, 576));
