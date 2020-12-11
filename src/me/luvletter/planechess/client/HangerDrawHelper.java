@@ -30,7 +30,8 @@ public class HangerDrawHelper implements Cloneable {
     }
 
     @Override
-    public HangerDrawHelper clone(){
+    public HangerDrawHelper clone() throws CloneNotSupportedException {
+        HangerDrawHelper clone = (HangerDrawHelper) super.clone();
         var newHashMap = new HashMap<Integer, Counter>();
         newHashMap.put(1, this.helper.get(1).clone());
         newHashMap.put(2, this.helper.get(2).clone());
@@ -90,7 +91,8 @@ class Counter implements Cloneable {
     }
 
     @Override
-    public Counter clone() {
+    public Counter clone() throws CloneNotSupportedException {
+        Counter clone = (Counter) super.clone();
         return new Counter(this.value);
     }
 }

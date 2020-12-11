@@ -7,11 +7,12 @@ import java.awt.event.MouseEvent;
 
 import me.luvletter.planechess.client.*;
 import me.luvletter.planechess.event.EventManager;
+import me.luvletter.planechess.event.clientevents.DiceEvent;
 import me.luvletter.planechess.event.clientevents.DiceAnimationEvent;
 import me.luvletter.planechess.event.clientevents.ShowOtherDiceEvent;
 import me.luvletter.planechess.event.clientevents.UpdateChessboardEvent;
 import me.luvletter.planechess.server.ChessBoardStatus;
-import me.luvletter.planechess.server.Game;
+import me.luvletter.planechess.server.LocalClient;
 
 import static me.luvletter.planechess.client.DiceAnimationHelper.*;
 
@@ -49,16 +50,16 @@ public class formMain {
 
     private final Object board_drawing_lock = new Object(); // Main Canvas Drawing Lock
 
-    private Game game_server;
+    private LocalClient localClient;
 
     private EventManager eventManager;
     private Thread ui_thread;
 
 
 
-    public formMain(Game game_server, EventManager eventManager) {
+    public formMain(LocalClient localClient, EventManager eventManager) {
         super();
-        this.game_server = game_server;
+        this.localClient = localClient;
         this.eventManager = eventManager;
 
         dpanel_Main = new Drawable_JPanel();
@@ -76,7 +77,8 @@ public class formMain {
 
         //    btn_dice.setEnabled(false);
         btn_dice.addActionListener(actionEvent -> {
-            int result = game_server.rolling_Dice(1);
+            // TODO: Edit me
+            int result =0// this.localClient.rolling_Dice(1);
             if(result == 0) {
                 System.out.println("last player don't dice and move");
                 return;
@@ -101,12 +103,12 @@ public class formMain {
             while(true) {
                 try {
                     e = eventManager.get();
-                    System.out.println("UI Update Event: Remaining" + eventManager.size() + ", this: " + e.toString());
+                    System.out.println("UI Update Event: Remaining " + eventManager.size() + ", this: " + e.toString());
                     switch (e.getType()) {
-                        case AllowDice:  allow_Dice(); break;
-                        case ShowOtherDiceEvent: show_other_Dice_Animation((ShowOtherDiceEvent) e); break;
-                        case UpdateChessboard:  update_chessboard((UpdateChessboardEvent) e); break;
-                        case DiceAnimation: dice_Animation((DiceAnimationEvent) e); break;
+                        case Dice -> allow_Dice((DiceEvent) e);
+                        case ShowOtherDiceEvent -> show_other_Dice_Animation((ShowOtherDiceEvent) e);
+                        case UpdateChessboard -> update_chessboard((UpdateChessboardEvent) e);
+                        case DiceAnimation -> dice_Animation((DiceAnimationEvent) e);
                     }
                 }
                 catch (Exception ex){
@@ -118,7 +120,9 @@ public class formMain {
     }
 
     // Events
-    private void allow_Dice() {
+    private void allow_Dice(DiceEvent e) {
+        // TODO: DiceType -> Fly or Battle
+
         //  dicing_status = 0;
         this.first_dice_result = 0;
         this.second_dice_result = 0;
@@ -138,8 +142,8 @@ public class formMain {
             // first draw
             var pst = cbs.getPlanePosition();
             var drawer = new DrawHelper();
-            pst.forEach((key, rpos) -> {
-                drawer.Draw(key, rpos);
+            pst.forEach((plane_id, raw_pos) -> {
+                drawer.Draw(plane_id, raw_pos);
             });
             dpanel_Main.Draw(drawer.getResultImage());
             last_cbs = cbs;

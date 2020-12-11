@@ -114,6 +114,9 @@ public final class PositionList {
         putAll(GreenPositions);
     }});
 
+    /**
+     * Positions in the order of circleBoard
+     * */
     public static final List<Integer> circleBoard = Collections.unmodifiableList(new ArrayList<>(52) {{
         add(101);
         add(211);

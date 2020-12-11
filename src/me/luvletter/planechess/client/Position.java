@@ -7,7 +7,7 @@ import java.util.Arrays;
 import java.util.Objects;
 
 // Block on chessboard
-public class Position {
+public final class Position {
     public final int ID;
     public final PlayerColor Color;
     public final Point Point;

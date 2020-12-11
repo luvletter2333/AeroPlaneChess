@@ -1,25 +1,21 @@
 package me.luvletter.planechess.server;
 
 import me.luvletter.planechess.event.EventManager;
-import me.luvletter.planechess.event.clientevents.AllowDiceEvent;
 import me.luvletter.planechess.event.clientevents.AnnounceWinEvent;
 import me.luvletter.planechess.event.clientevents.ShowOtherDiceEvent;
 import me.luvletter.planechess.event.clientevents.UpdateChessboardEvent;
 
-import java.util.ArrayList;
-
-public class InternalGame extends Game {
+public class LocalClient extends Client {
 
     private final EventManager clientEventManager;
-    public InternalGame(int player_Count, ArrayList<Integer> player_ids) {
-        super(player_Count, player_ids);
+    public LocalClient(int player_id) {
+        super(player_id);
         clientEventManager = new EventManager();
     }
 
     public EventManager getClientEventManager() {
         return clientEventManager;
     }
-
 
     /**
      * For Test Only
@@ -34,13 +30,14 @@ public class InternalGame extends Game {
     }
 
     @Override
-    protected void AllowDice() {
-        clientEventManager.push(new AllowDiceEvent());
+    protected void Dice(DiceType diceType, int dice_count, int dice_result) {
+
     }
 
     @Override
-    protected void ShowOtherDiceResult() {
-        clientEventManager.push(new ShowOtherDiceEvent(PlayerColor.Red, 13));
+    protected void ShowOtherDiceResult(int player_id, int dice_result) {
+        clientEventManager.push(new ShowOtherDiceEvent(player_id, dice_result));
+
     }
 
     @Override

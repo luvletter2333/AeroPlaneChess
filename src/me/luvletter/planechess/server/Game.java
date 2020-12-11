@@ -1,13 +1,20 @@
 package me.luvletter.planechess.server;
 
+import me.luvletter.planechess.client.Position;
+import me.luvletter.planechess.client.PositionList;
+
 import java.security.SecureRandom;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public abstract class Game {
+public class Game {
 
     public final int Player_Count;
     protected final ArrayList<Integer> player_ids;
+    /**
+     * Key -> plane ID
+     * Value -> Position ID, such as 102 302
+     * */
     protected final HashMap<Integer, Integer> planePosition;
     protected final ArrayList<PlaneStack> planeStacks;
 
@@ -43,12 +50,12 @@ public abstract class Game {
             planePosition.put(id * 10 + 4, id * 100);
         }
         System.out.println(planePosition);
-        //TODO: finished initialize planePosition;
     }
 
     /**
      * Rolling Dice, return an integer number in range [1,60]
-     * result / 10 -> first. result % 10 -> second
+     *
+     * @return result / 10 -> first. result % 10 -> second
      */
     public int rolling_Dice(int player_id) {
         synchronized (lock_obj) {
@@ -68,7 +75,7 @@ public abstract class Game {
      *
      * @return whether this move try is accepted
      */
-    public boolean move(int plane_id, int step, boolean fly, boolean go_stack) {
+    public boolean move(int plane_id, int step, boolean go_stack) {
         synchronized (lock_obj) {
             if (this.dice_player_id != plane_id / 10) // not your turn!!
                 return false;
@@ -91,24 +98,37 @@ public abstract class Game {
             // return false if not match all possible movement
             // validate step done!
 
-            // check whether plane is in a stack
+            baseMove(plane_id, step, go_stack);
 
-            var in_stacks = planeStacks.stream()
-                    .filter(stack -> stack.hasPlane(plane_id)).collect(Collectors.toList());
-            PlaneStack stack = null;
-            if (in_stacks.size() != 0)
-                stack = in_stacks.get(0); // must have one;
-
-            // TODO: finish stack judgement and move
-            //this.cbs.getPlanePosition().get
             this.dice_moved = true;
             return true;
         }
     }
 
-    protected void move(int plane_id, int destPos){
-        planePosition.remove(plane_id);
-        planePosition.put(plane_id, destPos);
+    protected void baseMove(int plane_id, int step, boolean go_stack){
+        // check whether plane is in a stack
+        var in_stacks = planeStacks.stream()
+                .filter(stack -> stack.hasPlane(plane_id)).collect(Collectors.toList());
+        PlaneStack stack = null;
+        if (in_stacks.size() != 0)
+            stack = in_stacks.get(0); // must have one;
+        // stack == null -> not in any stack
+
+        int start_pos = this.planePosition.get(plane_id);
+        int start_index = PositionList.circleBoard.indexOf(start_pos);
+
+        int end_index = ( start_index + step ) % 52;
+        Position end_pos = PositionList.all.get(PositionList.circleBoard.get(end_index));
+        // get landing position
+
+        if (end_pos.Color.getIntValue() == plane_id / 10){
+            // the same color
+        }
+
+        // TODO: finish stack judgement and move
+
+        //planePosition.remove(plane_id);
+       // planePosition.put(plane_id, destPos);
     }
 
     /**
@@ -129,16 +149,5 @@ public abstract class Game {
             return new ChessBoardStatus(this.Player_Count, this.planePosition, this.planeStacks);
         }
     }
-
-    /**
-     * Send By Server, Update Client
-     */
-    protected abstract void UpdateClientChessBoard(ChessBoardStatus cbs);
-
-    protected abstract void AllowDice();
-
-    protected abstract void ShowOtherDiceResult();
-
-    protected abstract void AnnounceWin(int winner);
 
 }
