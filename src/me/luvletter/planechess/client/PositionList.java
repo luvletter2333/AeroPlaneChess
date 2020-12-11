@@ -1,14 +1,12 @@
 package me.luvletter.planechess.client;
 
-import java.util.ArrayList;
-import java.util.Base64;
-import java.util.HashMap;
+import java.util.*;
 
 public final class PositionList {
     /**
      * 1xx
      * */
-    public static final HashMap<Integer, Position> RedPositions = new HashMap<>(20) {{
+    public static final Map<Integer, Position> RedPositions = Collections.unmodifiableMap(new HashMap<>(20) {{
         put(100, new Position(100, 71, 537));
         put(101, new Position(101, 180, 523));
         put(102, new Position(102, 126, 432));
@@ -29,12 +27,12 @@ public final class PositionList {
         put(117, new Position(117, 305, 417));
         put(118, new Position(118, 305, 378));
         put(119, new Position(119, 305, 339));
-    }};
+    }});
 
     /**
      * 2xx
      * */
-    public static final HashMap<Integer, Position> YellowPositions = new HashMap<>(20) {{
+    public static final Map<Integer, Position> YellowPositions = Collections.unmodifiableMap(new HashMap<>(20) {{
         put(200, new Position(200, 72, 68));
         put(201, new Position(201, 89, 179));
         put(202, new Position(202, 178, 124));
@@ -55,12 +53,12 @@ public final class PositionList {
         put(217, new Position(217, 192, 305));
         put(218, new Position(218, 233, 305));
         put(219, new Position(219, 273, 305));
-    }};
+    }});
 
     /**
      * 3xx
      * */
-    public static final HashMap<Integer, Position> BluePositions = new HashMap<>(20) {{
+    public static final Map<Integer, Position> BluePositions = Collections.unmodifiableMap(new HashMap<>(20) {{
         put(300, new Position(300, 532, 78));
         put(301, new Position(301, 430, 89));
         put(302, new Position(302, 485, 178));
@@ -81,12 +79,12 @@ public final class PositionList {
         put(317, new Position(317, 305, 191));
         put(318, new Position(318, 305, 231));
         put(319, new Position(319, 305, 268));
-    }};
+    }});
 
     /**
      * 4xx
      * */
-    public static final HashMap<Integer, Position> GreenPositions = new HashMap<>(20) {{
+    public static final Map<Integer, Position> GreenPositions = Collections.unmodifiableMap(new HashMap<>(20) {{
         put(400, new Position(400, 536, 537));
         put(401, new Position(401, 520, 430));
         put(402, new Position(402, 430, 485));
@@ -107,18 +105,67 @@ public final class PositionList {
         put(417, new Position(417, 416, 305));
         put(418, new Position(418, 375, 305));
         put(419, new Position(419, 336, 305));
-    }};
+    }});
 
-    public static final HashMap<Integer, Position> all = new HashMap<>(){{
+    public static final Map<Integer, Position> all = Collections.unmodifiableMap(new HashMap<>(80) {{
         putAll(RedPositions);
         putAll(YellowPositions);
         putAll(BluePositions);
         putAll(GreenPositions);
-    }};
+    }});
 
-    public static final ArrayList<Integer> circleBoard = new ArrayList<>(){{
-       add(101);
-       add(211);
-       add();
-    }};
+    public static final List<Integer> circleBoard = Collections.unmodifiableList(new ArrayList<>(52) {{
+        add(101);
+        add(211);
+        add(308);
+        add(405);
+        add(102);
+        add(212);
+        add(309);
+        add(406);
+        add(103);
+        add(213);
+        add(310);
+        add(407);
+        add(104);
+        add(201);
+        add(311);
+        add(408);
+        add(105);
+        add(202);
+        add(312);
+        add(409);
+        add(106);
+        add(203);
+        add(313);
+        add(410);
+        add(107);
+        add(204);
+        add(301);
+        add(411);
+        add(108);
+        add(205);
+        add(302);
+        add(412);
+        add(109);
+        add(206);
+        add(303);
+        add(413);
+        add(110);
+        add(207);
+        add(304);
+        add(401);
+        add(111);
+        add(208);
+        add(305);
+        add(402);
+        add(112);
+        add(209);
+        add(306);
+        add(403);
+        add(113);
+        add(210);
+        add(307);
+        add(404);
+    }});
 }
