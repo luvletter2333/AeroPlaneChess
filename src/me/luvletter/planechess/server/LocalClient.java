@@ -25,8 +25,8 @@ public class LocalClient extends Client {
     }
 
     @Override
-    public void UpdateClientChessBoard(ChessBoardStatus cbs) {
-        clientEventManager.push(new UpdateChessboardEvent(cbs));
+    public void UpdateClientChessBoard(ChessBoardStatus cbs, ServerMovement movement) {
+        clientEventManager.push(new UpdateChessboardEvent(cbs, movement));
     }
 
     @Override

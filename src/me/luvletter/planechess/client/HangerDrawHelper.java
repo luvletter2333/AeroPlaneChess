@@ -19,7 +19,7 @@ public class HangerDrawHelper implements Cloneable {
     }
 
     /**
-     * pos -> 100, 200, 300, 400
+     * pos -> 199, 299, 399, 499
      * position is automatically calculated
      * */
     public Point getPoint(int pos) {

@@ -1,5 +1,6 @@
 package me.luvletter.planechess.server;
 
+
 public abstract class Client {
 
     public final int player_id;
@@ -7,7 +8,7 @@ public abstract class Client {
         this.player_id = player_id;
     }
 
-    protected abstract void UpdateClientChessBoard(ChessBoardStatus cbs);
+    protected abstract void UpdateClientChessBoard(ChessBoardStatus cbs, ServerMovement movement);
 
     protected abstract void Dice(DiceType diceType, int dice_count, int dice_result);
 

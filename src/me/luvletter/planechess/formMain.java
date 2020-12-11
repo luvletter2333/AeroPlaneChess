@@ -78,7 +78,7 @@ public class formMain {
         //    btn_dice.setEnabled(false);
         btn_dice.addActionListener(actionEvent -> {
             // TODO: Edit me
-            int result =0// this.localClient.rolling_Dice(1);
+            int result =0; // this.localClient.rolling_Dice(1);
             if(result == 0) {
                 System.out.println("last player don't dice and move");
                 return;
