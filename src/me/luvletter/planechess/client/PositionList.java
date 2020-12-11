@@ -1,5 +1,6 @@
 package me.luvletter.planechess.client;
 
+import java.util.ArrayList;
 import java.util.Base64;
 import java.util.HashMap;
 
@@ -7,7 +8,7 @@ public final class PositionList {
     /**
      * 1xx
      * */
-    public static final HashMap<Integer, Position> RedPositions = new HashMap<>() {{
+    public static final HashMap<Integer, Position> RedPositions = new HashMap<>(20) {{
         put(100, new Position(100, 71, 537));
         put(101, new Position(101, 180, 523));
         put(102, new Position(102, 126, 432));
@@ -33,7 +34,7 @@ public final class PositionList {
     /**
      * 2xx
      * */
-    public static final HashMap<Integer, Position> YellowPositions = new HashMap<>() {{
+    public static final HashMap<Integer, Position> YellowPositions = new HashMap<>(20) {{
         put(200, new Position(200, 72, 68));
         put(201, new Position(201, 89, 179));
         put(202, new Position(202, 178, 124));
@@ -59,7 +60,7 @@ public final class PositionList {
     /**
      * 3xx
      * */
-    public static final HashMap<Integer, Position> BluePositions = new HashMap<>() {{
+    public static final HashMap<Integer, Position> BluePositions = new HashMap<>(20) {{
         put(300, new Position(300, 532, 78));
         put(301, new Position(301, 430, 89));
         put(302, new Position(302, 485, 178));
@@ -85,7 +86,7 @@ public final class PositionList {
     /**
      * 4xx
      * */
-    public static final HashMap<Integer, Position> GreenPositions = new HashMap<>() {{
+    public static final HashMap<Integer, Position> GreenPositions = new HashMap<>(20) {{
         put(400, new Position(400, 536, 537));
         put(401, new Position(401, 520, 430));
         put(402, new Position(402, 430, 485));
@@ -113,5 +114,11 @@ public final class PositionList {
         putAll(YellowPositions);
         putAll(BluePositions);
         putAll(GreenPositions);
+    }};
+
+    public static final ArrayList<Integer> circleBoard = new ArrayList<>(){{
+       add(101);
+       add(211);
+       add();
     }};
 }

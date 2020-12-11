@@ -106,8 +106,9 @@ public abstract class Game {
         }
     }
 
-    protected void move(int plane_id, int final_pos){
-        // TODO: finish base method move
+    protected void move(int plane_id, int destPos){
+        planePosition.remove(plane_id);
+        planePosition.put(plane_id, destPos);
     }
 
     /**
