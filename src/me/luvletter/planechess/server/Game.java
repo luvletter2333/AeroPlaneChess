@@ -135,6 +135,7 @@ public class Game {
 
     
     private void baseMove(int plane_id, int step, boolean go_stack){
+        // TODO: go_stack
         // check whether plane is in a stack
         var in_stacks = planeStacks.stream()
                 .filter(stack -> stack.hasPlane(plane_id)).collect(Collectors.toList());
@@ -167,18 +168,22 @@ public class Game {
                 return;
             }
             else{ // the first jump is a simple jump
-                if(isFlyingPoint(middle_pos)){ //jump to the flying point, and fly
-                    // TODO: work here
+                if(isFlyingPoint(middle_pos)){ //the second is a flying jump
+                    final_end_pos = getJumpDestination(middle_pos);
+                    tryBackPlanes(plane_id, middle_pos, end_pos);
+                    tryBackPlanes(plane_id, final_end_pos, middle_pos);
+                    movePlane(plane_id, final_end_pos);
+                }
+                else{ // the first jump is a simple jump, and no second jump
+                    final_end_pos = middle_pos;
+                    tryBackPlanes(plane_id, final_end_pos, end_pos);
+                    movePlane(plane_id, final_end_pos);
                 }
             }
         }
         else{ // not jump, just move (there won't be any battle needed, promised by antiCheat)
             movePlane(plane_id, final_end_pos);
         }
-
-        // TODO: finish stack judgement and move
-
-
     }
 
     /**
@@ -203,8 +208,19 @@ public class Game {
     }
 
     private void movePlane(int plane_id, int destPos){
-        planePosition.remove(plane_id);
-        planePosition.put(plane_id, destPos);
+        if(this.planeStacks.stream().noneMatch(planeStack -> planeStack.hasPlane(plane_id))) {
+            // the plane isn't in any stack, just update position_id
+            this.planePosition.put(plane_id, destPos);
+        }
+        else{
+            for (PlaneStack planeStack : this.planeStacks) {
+                if(planeStack.hasPlane(plane_id)) {
+                    planeStack.getStacked_planes().forEach(
+                            stacked_plane_id -> this.planePosition.put(stacked_plane_id, destPos));
+                    break;
+                }
+            }
+        }
     }
 
     /**
