@@ -85,7 +85,7 @@ public class Game {
                         movePlane(plane_id, (plane_id / 10) * 100);
                         // TODO: Add ServerMovement
                         serverMovement = new ServerMovement(null);
-
+                        updateClients();
                         this.dice_moved = true;
                         return true;
                     }
@@ -170,6 +170,7 @@ public class Game {
                 return false;
 
             baseMove(plane_id, step, go_stack);
+            updateClients();
             this.dice_moved = true;
             return true;
         }
@@ -410,6 +411,7 @@ public class Game {
     public void testMove(int plane_id, int step, boolean go_stack) {
         if (Main.DEBUG_MODE) {
             baseMove(plane_id, step, go_stack);
+            updateClients();
             this.dice_moved = true;
         }
     }
