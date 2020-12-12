@@ -4,6 +4,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.image.BufferedImage;
 
 import me.luvletter.planechess.client.*;
 import me.luvletter.planechess.event.EventManager;
@@ -58,6 +59,8 @@ public class formMain {
     private EventManager eventManager;
     private Thread ui_thread;
 
+    private volatile boolean allow_preview = false;
+    private volatile BufferedImage preview_baseImg;
 
     public formMain(LocalClient localClient, EventManager eventManager) {
         super();
@@ -164,6 +167,8 @@ public class formMain {
             });
             dpanel_Main.Draw(drawer.getResultImage());
             last_cbs = cbs;
+            // save img for previewing render
+            this.preview_baseImg = drawer.getResultImage();
             System.out.println("first drawing finished!!");
         } else {
             // TODO: second draw with animation
@@ -186,10 +191,11 @@ public class formMain {
                     interruptedException.printStackTrace();
                 }
                 this.eventManager.push(new DiceAnimationEvent(e.result, e.round + 1, e.count));
-            }
-            else{
+            } else {
                 // final roll
-                label_Down.setText(String.format("Dice ends. You got %d and %d. You can choose plane to move or start a plane",this.dice_first_result, this.dice_second_result));
+                label_Down.setText(String.format("Dice ends. You got %d and %d. You can choose plane to move or start a plane", this.dice_first_result, this.dice_second_result));
+                // allow preview here
+
             }
             // next animation
         } else {
