@@ -44,7 +44,6 @@ public class formMain {
     // 1 -> first dicing finished, waiting for the second
     // 2 -> second dicing finished, wait 5s to reset to Dice_Unknown
     // private int dicing_status = 0;
-    private volatile int dice_round = 0;
     private volatile int dice_first_result = 0;     // only under fly mode
     private volatile int dice_second_result = 0;    // only under fly mode
     private volatile int dice_count = 2;
@@ -105,6 +104,7 @@ public class formMain {
                 var ps = ChessBoardClickHelper.matchPositionfromPoint(p);
                 //   System.out.println(ps);
             }
+
         });
 
         ui_thread = new Thread(() -> {
@@ -117,8 +117,9 @@ public class formMain {
                         case showDice -> showDice((DiceEvent) e);
                         case ShowOtherDice -> show_other_Dice_Animation((ShowOtherDiceEvent) e);
                         case UpdateChessboard -> update_chessboard((UpdateChessboardEvent) e);
-                        case DiceAnimation -> dice_Animation((DiceAnimationEvent) e);
+//                        case DiceAnimation -> dice_Animation((DiceAnimationEvent) e);
                     }
+                    sleep(500);
                 } catch (Exception ex) {
                     ex.printStackTrace();
                 }
@@ -137,7 +138,8 @@ public class formMain {
             // under Fly mode, dice Count is always 2
             this.dice_first_result = e.diceResult / 10;
             this.dice_second_result = e.diceResult % 10;
-            this.eventManager.push(new DiceAnimationEvent(e.diceResult, 1, 2));
+
+            dice_Animation(e);
         } else {
             // Battle Mode
             // TODO: Handle Battle Mode Dice
@@ -150,7 +152,21 @@ public class formMain {
     }
 
     private void show_other_Dice_Animation(ShowOtherDiceEvent e) {
+        if (e.diceType == DiceType.Fly) {
 
+            this.label_Down.setText("Player " + e.playerID + " is dicing. Round " + 1);
+            diceAnimate(label_status, dpanel_Dice, getDiceResultinRound(e.diceResult, 1), 1);
+            sleep(3000);
+
+            this.label_Down.setText("Player " + e.playerID + " is dicing. Round " + 2);
+            diceAnimate(label_status, dpanel_Dice, getDiceResultinRound(e.diceResult, 2), 2);
+
+            // final roll
+            label_Down.setText(String.format("Dice ends. He/She got %d and %d.",
+                    getDiceResultinRound(e.diceResult, 1), getDiceResultinRound(e.diceResult, 2)));
+        } else {
+            // TODO: Battle Mode
+        }
     }
 
     private ChessBoardStatus last_cbs;
@@ -166,7 +182,8 @@ public class formMain {
                 drawer.Draw(plane_id, raw_pos);
             });
             dpanel_Main.Draw(drawer.getResultImage());
-            last_cbs = cbs;
+            //last_cbs = cbs;
+            // FIXME: comment last_cbs: draw directly
             // save img for previewing render
             this.preview_baseImg = drawer.getResultImage();
             System.out.println("first drawing finished!!");
@@ -176,28 +193,16 @@ public class formMain {
     }
 
     // Show dicing animation
-    private void dice_Animation(DiceAnimationEvent e) {
+    private void dice_Animation(DiceEvent e) {
         if (this.dice_type == DiceType.Fly) {
-            //this.btn_dice.setEnabled(false);
-            this.label_Down.setText("Dicing Round" + e.round + "! Good luck~");
-            this.dice_round = e.round;
+            this.label_Down.setText("You are dicing. Round 1! Good luck~");
+            diceAnimate(label_status, dpanel_Dice, getDiceResultinRound(e.diceResult, 1), 1);
+            sleep(3000);
 
-            diceAnimate(label_status, dpanel_Dice, getDiceResultinRound(e.result, e.round), e.round);
+            this.label_Down.setText("You are dicing. Round 2! Good luck~");
+            diceAnimate(label_status, dpanel_Dice, getDiceResultinRound(e.diceResult, 2), 2);
 
-            if (e.round < e.count) {
-                try {
-                    Thread.sleep(1500);
-                } catch (InterruptedException interruptedException) {
-                    interruptedException.printStackTrace();
-                }
-                this.eventManager.push(new DiceAnimationEvent(e.result, e.round + 1, e.count));
-            } else {
-                // final roll
-                label_Down.setText(String.format("Dice ends. You got %d and %d. You can choose plane to move or start a plane", this.dice_first_result, this.dice_second_result));
-                // allow preview here
-
-            }
-            // next animation
+            label_Down.setText(String.format("Dice ends. You got %d and %d. You can choose a plane to move or take off a plane", this.dice_first_result, this.dice_second_result));
         } else {
             // TODO: Battle Mode
         }
@@ -213,4 +218,11 @@ public class formMain {
         father_container.add(dPanel, BorderLayout.CENTER);
     }
 
+    private void sleep(long ms){
+        try {
+            Thread.sleep(ms);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
 }

@@ -2,14 +2,20 @@ package me.luvletter.planechess.event.clientevents;
 
 import me.luvletter.planechess.event.Event;
 import me.luvletter.planechess.event.EventType;
+import me.luvletter.planechess.server.DiceType;
 
 public final class ShowOtherDiceEvent extends Event {
-    private final int playerColor;
-    private final int result;
+    public final int playerID;
+    public final DiceType diceType;
+    public final int diceCount;
+    public final int diceResult;
 
-    public ShowOtherDiceEvent(int playerColor, int result) {
+    public ShowOtherDiceEvent(int playerID, DiceType diceType, int diceCount, int diceResult) {
         super(EventType.ShowOtherDice);
-        this.playerColor = playerColor;
-        this.result = result;
+        this.playerID = playerID;
+        this.diceType = diceType;
+        this.diceCount = diceCount;
+        this.diceResult = diceResult;
     }
+
 }

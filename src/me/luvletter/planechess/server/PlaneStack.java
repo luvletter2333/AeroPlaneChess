@@ -21,4 +21,11 @@ public class PlaneStack {
     public int planeCount() {
         return this.stacked_planes.size();
     }
+
+    @Override
+    public String toString() {
+        return "PlaneStack{" +
+                stacked_planes +
+                '}';
+    }
 }

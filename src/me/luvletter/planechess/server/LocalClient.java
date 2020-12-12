@@ -37,7 +37,7 @@ public class LocalClient extends Client {
 
     @Override
     public void ShowOtherDiceResult(int player_id, DiceType diceType, int dice_count, int dice_result) {
-        clientEventManager.push(new ShowOtherDiceEvent(player_id, dice_result));
+        clientEventManager.push(new ShowOtherDiceEvent(player_id, diceType, dice_count, dice_result));
 
     }
 

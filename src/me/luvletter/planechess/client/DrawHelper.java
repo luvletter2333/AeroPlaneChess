@@ -48,7 +48,7 @@ public class DrawHelper {
         // key -> 24 means the fourth plane of player 2
         final int player_id = plane_id / 10; // from 1 to 4
         final Point pos = (raw_position_id % 100 == 99) ? hangerDrawHelper.getPoint(raw_position_id)
-                : switch (player_id) {
+                : switch (raw_position_id / 100) {
             case 1 -> PositionList.RedPositions.get(raw_position_id).Point;
             case 2 -> PositionList.YellowPositions.get(raw_position_id).Point;
             case 3 -> PositionList.BluePositions.get(raw_position_id).Point;

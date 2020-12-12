@@ -43,22 +43,26 @@ public class Game {
             throw new IllegalArgumentException("size of player_ids should equal to player_Count");
         this.player_ids = new ArrayList<>(player_ids);
         this.planePosition = new HashMap<>();
-        initializePlanePosition();
-        this.planeStacks = new ArrayList<>();
-        this.dice_random = new SecureRandom();
-        this.clients = new HashMap<>(4);
-//        this.serverEventManager = new EventManager();
-//        this.running_thread = new Thread(this::work);
-    }
-
-    private void initializePlanePosition() {
         for (int id : player_ids) {
             planePosition.put(id * 10 + 1, id * 100 + 99);
             planePosition.put(id * 10 + 2, id * 100 + 99);
             planePosition.put(id * 10 + 3, id * 100 + 99);
             planePosition.put(id * 10 + 4, id * 100 + 99);
         }
-        System.out.println(planePosition);
+        // initializePlanePosition
+        this.planeStacks = new ArrayList<>();
+        this.dice_random = new SecureRandom();
+        this.clients = new HashMap<>(4);
+    }
+
+    /**
+     * add Client, and automatically bind Game
+     */
+    public void addClient(Client client) {
+        if (!player_ids.contains(client.player_id))
+            return;
+        this.clients.put(client.player_id, client);
+        client.bindGame(this);
     }
 
     public void announceStart() {
@@ -74,19 +78,24 @@ public class Game {
         }
     }
 
-    public boolean takeOff(int plane_id){
-        synchronized (lock_obj){
-            if(this.dice_player_id != plane_id / 10)
+    public boolean takeOff(int player_id) {
+        synchronized (lock_obj) {
+            if (this.dice_player_id != player_id) // not your turn!!
+                return false;
+            if (this.dice_moved)     // you have moved!!
+                return false;
+            if (this.dice_first_result != 6 && this.dice_second_result != 6)
                 return false;
             for (Map.Entry<Integer, Integer> entry : this.planePosition.entrySet()) {
-                if(entry.getKey() / 10 == plane_id / 10)
-                    if(entry.getValue() % 100 == 99){
+                if (entry.getKey() / 10 == player_id)
+                    if (entry.getValue() % 100 == 99) {
                         // clear to take off
-                        movePlane(plane_id, (plane_id / 10) * 100);
+                        movePlane(entry.getKey(), player_id * 100);
                         // TODO: Add ServerMovement
                         serverMovement = new ServerMovement(null);
                         updateClients();
                         this.dice_moved = true;
+                        nextLoop();
                         return true;
                     }
             }
@@ -94,54 +103,17 @@ public class Game {
         }
     }
 
-//    private void work() {
-//        sleep(500);
-//        // Test Ready
-//        for (Client value : this.clients.values()) {
-//            while (!value.isReady())
-//                sleep(200);
-//        }
-//        while (true) {
-//            var event = serverEventManager.get();
-//            System.out.println("[Server] Received Event: " + event.toString());
-//            switch (event.getType()) {
-//                // TO DO: fill event filter
-//            }
-//        }
-//    }
-//
-//    private void sleep(long ms){
-//        try {
-//            Thread.sleep(ms);
-//        } catch (InterruptedException e) {
-//            e.printStackTrace();
-//        }
-//    }
-
     /**
-     * add Client, and automatically bind Game
+     * You have nothing to do but skip this loop
      */
-    public void addClient(Client client) {
-        if (!player_ids.contains(client.player_id))
-            return;
-        this.clients.put(client.player_id, client);
-        client.bindGame(this);
-    }
-
-    /**
-     * Rolling Dice in Dice Type Fly, return an integer number in range [1,60]
-     * @return result / 10 -> first. result % 10 -> second
-     */
-    private int rolling_Dice(int player_id) {
-        this.dice_player_id = player_id;
-        this.dice_moved = false;
-        this.dice_first_result = onceDice();
-        this.dice_second_result = onceDice();
-        return this.dice_first_result * 10 + this.dice_second_result;
-    }
-
-    private int onceDice() {
-        return this.dice_random.nextInt(6) + 1;
+    public boolean skip(int player_id) {
+        synchronized (lock_obj) {
+            if (this.dice_player_id != player_id)
+                return false;
+            this.dice_moved = true;
+            nextLoop();
+            return true;
+        }
     }
 
     /**
@@ -172,18 +144,40 @@ public class Game {
             baseMove(plane_id, step, go_stack);
             updateClients();
             this.dice_moved = true;
+            nextLoop();
             return true;
         }
     }
 
     /**
-     * @return test passed
+     * Rolling Dice in Dice Type Fly, return an integer number in range [1,60]
+     *
+     * @return result / 10 -> first. result % 10 -> second
+     */
+    private int rolling_Dice(int player_id) {
+        this.dice_player_id = player_id;
+        this.dice_moved = false;
+        this.dice_first_result = onceDice();
+        this.dice_second_result = onceDice();
+        return this.dice_first_result * 10 + this.dice_second_result;
+    }
+
+    private int onceDice() {
+        return this.dice_random.nextInt(6) + 1;
+    }
+
+    /**
+     * @return true -> test passed
      */
     private boolean antiCheat(int plane_id, int step) {
+        if (step <= 0)
+            return false;
         if (this.dice_player_id != plane_id / 10) // not your turn!!
             return false;
         if (this.dice_moved)     // you have moved!!
             return false;
+        if (this.planePosition.get(plane_id) % 100 == 99)
+            return false;       // you are in the hanger!
         // Anti-Cheat done!
 
         var possibleMove = new ArrayList<Integer>();
@@ -194,19 +188,14 @@ public class Game {
             possibleMove.add(dice_first_result / dice_second_result);
         if (dice_second_result % dice_first_result == 0)
             possibleMove.add(dice_second_result / dice_first_result);
-        System.out.println("possible Movement:" + possibleMove);
-
         if (possibleMove.stream().noneMatch(mv -> mv == step))
             return false;
 
-        // get current pos
-        int current_pos = this.planePosition.get(plane_id) % 100;
-        if (current_pos + step > 19)
-            return false;
-        // out of the plane
+        if (this.calculateDestPos(plane_id / 10, this.planePosition.get(plane_id), step) == -1)
+            return false;       // out of bound
+
         return true;
     }
-
 
     /**
      * in baseMove, we don't consider there is any battle.
@@ -222,15 +211,12 @@ public class Game {
         // stack == null -> not in any stack
 
         int start_pos = this.planePosition.get(plane_id);
-        int start_index = PositionList.circleBoard.indexOf(start_pos);
-
-        int end_index = (start_index + step) % 52;
-        int end_pos = PositionList.all.get(PositionList.circleBoard.get(end_index)).ID;
+        int end_pos = calculateDestPos(plane_id / 10, start_pos, step);
         // get initial landing position
 
         int final_end_pos = end_pos;
 
-        if (end_pos / 100 == plane_id / 10) {  // the same color -> ready to jump (first jump)
+        if (end_pos / 100 == plane_id / 10 && end_pos % 100 < 13) {  // the same color -> ready to jump (first jump)
             // whether there are some planes in the first jump destination position
             tryBackPlanes(plane_id, end_pos, start_pos);
 
@@ -240,11 +226,12 @@ public class Game {
                 final_end_pos = getJumpDestination(middle_pos);
                 tryBackPlanes(plane_id, middle_pos, end_pos);
                 tryBackPlanes(plane_id, final_end_pos, middle_pos);
-                movePlane(plane_id, final_end_pos);
                 if (go_stack) {
+                    tryStackPlanes(plane_id, end_pos);
                     tryStackPlanes(plane_id, middle_pos);
                     tryStackPlanes(plane_id, final_end_pos);
                 }
+                movePlane(plane_id, final_end_pos);
                 // TODO: Add ServerMovement to let client render more easlily
                 return;
             } else { // the first jump is a simple jump
@@ -252,27 +239,72 @@ public class Game {
                     final_end_pos = getJumpDestination(middle_pos);
                     tryBackPlanes(plane_id, middle_pos, end_pos);
                     tryBackPlanes(plane_id, final_end_pos, middle_pos);
-                    movePlane(plane_id, final_end_pos);
                     if (go_stack) {
+                        tryStackPlanes(plane_id, end_pos);
                         tryStackPlanes(plane_id, middle_pos);
                         tryStackPlanes(plane_id, final_end_pos);
                     }
+                    movePlane(plane_id, final_end_pos);
                 } else { // the first jump is a simple jump, and no second jump
                     final_end_pos = middle_pos;
                     tryBackPlanes(plane_id, final_end_pos, end_pos);
-                    movePlane(plane_id, final_end_pos);
                     if (go_stack) {
+                        tryStackPlanes(plane_id, end_pos);
                         tryStackPlanes(plane_id, final_end_pos);
                     }
+                    movePlane(plane_id, final_end_pos);
                 }
             }
         } else { // not jump, just move (there won't be any battle needed, promised by antiCheat)
             movePlane(plane_id, final_end_pos);
+            if (go_stack)
+                tryStackPlanes(plane_id, final_end_pos);
         }
         // check win
         if (checkWin(plane_id / 10))
             declareWin(plane_id / 10);
     }
+
+    /**
+     * Calculate the destination position id
+     *
+     * @return 104, 205, etc. -1 means out of bound.
+     */
+    private int calculateDestPos(int player_id, int from, int step) {
+        if (from % 100 >= 13) {
+            int pos_id = from % 100;
+            if (pos_id + step >19)
+                return -1;
+            return player_id * 100 + pos_id + step;
+        }
+        // we assume it still in the circle loop
+        int start_index = PositionList.circleBoard.indexOf(from);
+        if (start_index == -1) {
+            // fix starting point
+            start_index = switch (player_id) {
+                case 1 -> PositionList.circleBoard.indexOf(307);
+                case 2 -> PositionList.circleBoard.indexOf(407);
+                case 3 -> PositionList.circleBoard.indexOf(107);
+                case 4 -> PositionList.circleBoard.indexOf(207);
+                default -> 0;
+            };
+        }
+        int end_index = 0;
+        for (int i = 0; i <= step; i++) {
+            end_index = (start_index + i) % 52;
+            // meet its entrance to final approach
+            if (PositionList.circleBoard.get(end_index) == 13 + player_id * 100) {
+                int last_step = step - i;
+                if (last_step > 6)
+                    return -1;
+                else
+                    return player_id * 100 + 13 + last_step;
+            }
+        }
+        // not meet entrance
+        return PositionList.all.get(PositionList.circleBoard.get(end_index)).ID;
+    }
+
 
     /**
      * check whether given point is the Flying Point
@@ -308,6 +340,7 @@ public class Game {
                 }
             }
         }
+        System.out.println(this.planePosition);
     }
 
     /**
@@ -331,7 +364,7 @@ public class Game {
             }
         }
         for (Integer diedPlane_id : diedPlanes) {
-            movePlane(diedPlane_id, (diedPlane_id / 100) * 100 + 99);
+            movePlane(diedPlane_id, (diedPlane_id / 10) * 100 + 99);
         }
         // un-stack
         if (diedPlanes.size() > 0) {
@@ -358,8 +391,9 @@ public class Game {
      */
     private boolean tryStackPlanes(int plane_id, int position_id) {
         for (PlaneStack planeStack : this.planeStacks) {
-            if (planeStack.hasPlane(plane_id)) { // there is a stack in given position
-                planeStack.addPlane(plane_id);
+            if (this.planePosition.get(planeStack.getStacked_planes().get(0)) == position_id) { // there is a stack in given position
+                if (!planeStack.getStacked_planes().contains(plane_id))
+                    planeStack.addPlane(plane_id);
                 return true;
             }
         }
@@ -384,6 +418,7 @@ public class Game {
      * @param player_id 1, 2, 3, 4
      */
     private boolean checkWin(int player_id) {
+        // TODO: assign position 198 to planes which arrive the final
         return this.planePosition.entrySet().stream()
                 .filter(entry -> entry.getKey() / 10 == player_id)
                 .allMatch(entry -> entry.getValue() % 100 == 19);
@@ -395,20 +430,29 @@ public class Game {
         clients.values().forEach(c -> c.declareWin(player_id));
     }
 
-
     private ChessBoardStatus getChessboardStatus() {
         return new ChessBoardStatus(this.Player_Count, this.planePosition, this.planeStacks, has_won, win_player_id);
     }
 
-    private void updateClients(){
+    private void updateClients() {
         var cbs = getChessboardStatus();
-        clients.values().forEach(c -> c.UpdateClientChessBoard(cbs,serverMovement));
+        clients.values().forEach(c -> c.UpdateClientChessBoard(cbs, serverMovement));
+    }
+
+    private void nextLoop() {
+        int next_player = this.player_ids.get((this.player_ids.indexOf(this.dice_player_id) + 1) % this.Player_Count);
+        System.out.println("[Server] next Player: " + next_player);
+        int dice_result = rolling_Dice(next_player);
+        clients.get(next_player).Dice(DiceType.Fly, 2, dice_result);
+        clients.values().stream()
+                .filter(c -> c.player_id != next_player)
+                .forEach(c -> c.ShowOtherDiceResult(next_player, DiceType.Fly, 2, dice_result));
     }
 
     /**
      * Only for debug
      */
-    public void testMove(int plane_id, int step, boolean go_stack) {
+    public void testforceMove(int plane_id, int step, boolean go_stack) {
         if (Main.DEBUG_MODE) {
             baseMove(plane_id, step, go_stack);
             updateClients();
@@ -416,11 +460,38 @@ public class Game {
         }
     }
 
-    public void testModifyDiceResult(int dice_first_result, int dice_second_result){
-        if(! Main.DEBUG_MODE)
+    public void testforceMoveTo(int plane_id, int dest) {
+        if (!Main.DEBUG_MODE)
+            return;
+        movePlane(plane_id, dest);
+        updateClients();
+    }
+
+    public void testforceModifyDiceResult(int dice_first_result, int dice_second_result) {
+        if (!Main.DEBUG_MODE)
             return;
         this.dice_first_result = dice_first_result;
         this.dice_second_result = dice_second_result;
+    }
+
+    public void testStatus() {
+        if (!Main.DEBUG_MODE)
+            return;
+        System.out.println(this.planePosition);
+        System.out.println(this.planeStacks);
+        System.out.println(String.format("Dice: owner:%s 1st:%s 2nd:%s moved:%s", this.dice_player_id, this.dice_first_result, this.dice_second_result, this.dice_moved));
+    }
+
+    public void testNextLoop() {
+        if (!Main.DEBUG_MODE)
+            return;
+        this.nextLoop();
+    }
+
+    public void testSkip(int player_id) {
+        if (!Main.DEBUG_MODE)
+            return;
+        this.skip(player_id);
     }
 
 }
