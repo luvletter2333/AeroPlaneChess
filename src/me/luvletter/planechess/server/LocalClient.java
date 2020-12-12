@@ -2,6 +2,7 @@ package me.luvletter.planechess.server;
 
 import me.luvletter.planechess.event.EventManager;
 import me.luvletter.planechess.event.clientevents.AnnounceWinEvent;
+import me.luvletter.planechess.event.clientevents.DiceEvent;
 import me.luvletter.planechess.event.clientevents.ShowOtherDiceEvent;
 import me.luvletter.planechess.event.clientevents.UpdateChessboardEvent;
 
@@ -30,18 +31,28 @@ public class LocalClient extends Client {
     }
 
     @Override
-    protected void Dice(DiceType diceType, int dice_count, int dice_result) {
-
+    public void Dice(DiceType diceType, int dice_count, int dice_result) {
+        clientEventManager.push(new DiceEvent(diceType, dice_count, dice_result));
     }
 
     @Override
-    protected void ShowOtherDiceResult(int player_id, int dice_result) {
+    public void ShowOtherDiceResult(int player_id, DiceType diceType, int dice_count, int dice_result) {
         clientEventManager.push(new ShowOtherDiceEvent(player_id, dice_result));
 
     }
 
     @Override
-    protected void AnnounceWin(int winner) {
+    public void AnnounceWin(int winner) {
         clientEventManager.push(new AnnounceWinEvent(winner));
+    }
+
+    @Override
+    public boolean isReady() {
+        return true;
+    }
+
+    @Override
+    public void declareWin(int wonPlayer) {
+        clientEventManager.push(new AnnounceWinEvent(wonPlayer));
     }
 }

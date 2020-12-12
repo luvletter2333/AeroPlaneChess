@@ -32,13 +32,13 @@ public class DiceAnimationHelper {
 
     public static void diceAnimate(JLabel label_status, Drawable_JPanel dpanel_Dice, int dice_result, int dice_round){
         try {
-            Thread.sleep(50);
+            Thread.sleep(150);
             for(int i=1;i<9;i++){ // Animation loop
                 label_status.setText(convertToMultiline("Round " + dice_round + ".\nYou are dicing" + ".".repeat(i % 3 + 2)));
                 dpanel_Dice.Draw(getAnimationImage(i));
-                Thread.sleep(200);
+                Thread.sleep(300);
             }
-            Thread.sleep(1000);
+            //Thread.sleep(1000);
         } catch (InterruptedException interruptedException) {
             interruptedException.printStackTrace();
         }

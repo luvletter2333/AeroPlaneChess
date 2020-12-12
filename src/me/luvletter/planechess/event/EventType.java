@@ -1,8 +1,8 @@
 package me.luvletter.planechess.event;
 
 public enum EventType {
-    ShowOtherDiceEvent,
-    Dice,
+    ShowOtherDice,
+    showDice,
     UpdateChessboard,
     DiceAnimation,
     AnnounceWin

@@ -5,12 +5,16 @@ import java.util.*;
 public class ChessBoardStatus {
     private final int player_Count;
     private HashMap<Integer, Integer> planePosition;
-    private ArrayList<PlaneStack> stacks;
+    private final ArrayList<PlaneStack> stacks;
+    private final boolean isWin;
+    private final int wonPlayer;
 
-    public ChessBoardStatus(int player_count, HashMap<Integer, Integer> pos, ArrayList<PlaneStack> stacks) {
+    public ChessBoardStatus(int player_count, HashMap<Integer, Integer> pos, ArrayList<PlaneStack> stacks, boolean isWin, int wonPlayer) {
         this.planePosition = pos;
         this.player_Count = player_count;
         this.stacks = stacks;
+        this.isWin = isWin;
+        this.wonPlayer = wonPlayer;
     }
 
     public int getPlayer_Count() {

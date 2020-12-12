@@ -7,9 +7,11 @@ import me.luvletter.planechess.server.DiceType;
 public final class DiceEvent extends Event {
     public final DiceType diceType;
     public final int diceCount;
-    public DiceEvent(DiceType diceType, int diceCount) {
-        super(EventType.Dice);
+    public final int diceResult;
+    public DiceEvent(DiceType diceType, int diceCount, int diceResult) {
+        super(EventType.showDice);
         this.diceType = diceType;
         this.diceCount = diceCount;
+        this.diceResult = diceResult;
     }
 }

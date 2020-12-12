@@ -4,11 +4,14 @@ import me.luvletter.planechess.event.Event;
 import me.luvletter.planechess.event.EventType;
 
 public class DiceAnimationEvent extends Event {
-    public final int firstResult;
-    public final int secondResult;
-    public DiceAnimationEvent(int first_result, int second_result){
+    public final int result;
+    public final int round;
+    public final int count;
+
+    public DiceAnimationEvent(int result, int round, int count) {
         super(EventType.DiceAnimation);
-        this.firstResult = first_result;
-        this.secondResult = second_result;
+        this.result = result;
+        this.round = round;
+        this.count = count;
     }
 }
