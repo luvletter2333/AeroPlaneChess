@@ -169,12 +169,14 @@ public class formMain {
         }
     }
 
-    private ChessBoardStatus last_cbs;
-
     //private ArrayList<Animation>
     private void update_chessboard(UpdateChessboardEvent e) {
+        if (e.isSkipped) {
+            // TODO: Add skipping message
+            return;
+        }
         ChessBoardStatus cbs = e.cbs;
-        if (last_cbs == null) {
+        if (e.isInitialize) {
             // first draw
             var pst = cbs.getPlanePosition();
             var drawer = new DrawHelper();
@@ -182,13 +184,15 @@ public class formMain {
                 drawer.Draw(plane_id, raw_pos);
             });
             dpanel_Main.Draw(drawer.getResultImage());
-            //last_cbs = cbs;
             // FIXME: comment last_cbs: draw directly
             // save img for previewing render
             this.preview_baseImg = drawer.getResultImage();
             System.out.println("first drawing finished!!");
         } else {
             // TODO: second draw with animation
+            var animation = new Animation(cbs, e.movement, e.backPlanes);
+            animation.Animate(dpanel_Main);
+            System.out.println(animation);
         }
     }
 
@@ -218,7 +222,7 @@ public class formMain {
         father_container.add(dPanel, BorderLayout.CENTER);
     }
 
-    private void sleep(long ms){
+    private void sleep(long ms) {
         try {
             Thread.sleep(ms);
         } catch (InterruptedException e) {

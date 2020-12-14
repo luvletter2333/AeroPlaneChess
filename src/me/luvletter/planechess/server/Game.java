@@ -5,6 +5,7 @@ import me.luvletter.planechess.client.Position;
 import me.luvletter.planechess.client.PositionList;
 import me.luvletter.planechess.event.EventManager;
 
+import java.lang.reflect.Array;
 import java.security.SecureRandom;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -33,9 +34,10 @@ public class Game {
     private final Object lock_obj = new Object();
 
     private final HashMap<Integer, Client> clients;
-    private volatile ServerMovement serverMovement = null;
-//    private final EventManager serverEventManager;
-//    private final Thread running_thread;
+
+    private volatile Movement movement;
+    private volatile HashSet<Integer> backPlane;
+
 
     public Game(int player_Count, ArrayList<Integer> player_ids) {
         this.Player_Count = player_Count;
@@ -68,7 +70,7 @@ public class Game {
     public void announceStart() {
         synchronized (lock_obj) {
             var init_cbs = getChessboardStatus();
-            clients.values().forEach(client -> client.UpdateClientChessBoard(init_cbs, ServerMovement.NoMovement));
+            clients.values().forEach(client -> client.UpdateClientChessBoard(init_cbs, null, null, false, true));
             int start_player = player_ids.stream().min(Integer::compareTo).get();
             int dice_result = rolling_Dice(start_player);
             clients.get(start_player).Dice(DiceType.Fly, 2, dice_result);
@@ -91,8 +93,8 @@ public class Game {
                     if (entry.getValue() % 100 == 99) {
                         // clear to take off
                         movePlane(entry.getKey(), player_id * 100);
-                        // TODO: Add ServerMovement
-                        serverMovement = new ServerMovement(null);
+                        this.backPlane = new HashSet<>();
+                        this.movement = new Movement(entry.getKey(), (entry.getKey() / 10) * 100 + 99, player_id * 100);
                         updateClients();
                         this.dice_moved = true;
                         nextLoop();
@@ -112,6 +114,9 @@ public class Game {
                 return false;
             this.dice_moved = true;
             nextLoop();
+            this.movement = null;
+            this.backPlane = new HashSet<>();
+            updateClients(true);
             return true;
         }
     }
@@ -200,8 +205,10 @@ public class Game {
     /**
      * in baseMove, we don't consider there is any battle.
      * Guaranteed by battle judgement
+     * backPlane and movement will be initialized and set
      */
     private void baseMove(int plane_id, int step, boolean go_stack) {
+        this.backPlane = new HashSet<>();
         // check whether plane is in a stack
         var in_stacks = planeStacks.stream()
                 .filter(stack -> stack.hasPlane(plane_id)).collect(Collectors.toList());
@@ -219,7 +226,6 @@ public class Game {
         if (end_pos / 100 == plane_id / 10 && end_pos % 100 < 13) {  // the same color -> ready to jump (first jump)
             // whether there are some planes in the first jump destination position
             tryBackPlanes(plane_id, end_pos, start_pos);
-
             // if the first jump is a fly, then it leads a double jump
             int middle_pos = getJumpDestination(end_pos);
             if (isFlyingPoint(end_pos)) {
@@ -232,7 +238,7 @@ public class Game {
                     tryStackPlanes(plane_id, final_end_pos);
                 }
                 movePlane(plane_id, final_end_pos);
-                // TODO: Add ServerMovement to let client render more easlily
+                this.movement = new Movement(plane_id, start_pos, final_end_pos).addKeyPoint(end_pos).addKeyPoint(middle_pos);
                 return;
             } else { // the first jump is a simple jump
                 if (isFlyingPoint(middle_pos)) { //the second is a flying jump
@@ -245,6 +251,7 @@ public class Game {
                         tryStackPlanes(plane_id, final_end_pos);
                     }
                     movePlane(plane_id, final_end_pos);
+                    this.movement = new Movement(plane_id, start_pos, final_end_pos).addKeyPoint(end_pos).addKeyPoint(middle_pos);
                 } else { // the first jump is a simple jump, and no second jump
                     final_end_pos = middle_pos;
                     tryBackPlanes(plane_id, final_end_pos, end_pos);
@@ -253,10 +260,12 @@ public class Game {
                         tryStackPlanes(plane_id, final_end_pos);
                     }
                     movePlane(plane_id, final_end_pos);
+                    this.movement = new Movement(plane_id, start_pos, final_end_pos).addKeyPoint(end_pos);
                 }
             }
         } else { // not jump, just move (there won't be any battle needed, promised by antiCheat)
             movePlane(plane_id, final_end_pos);
+            this.movement = new Movement(plane_id, start_pos, final_end_pos);
             if (go_stack)
                 tryStackPlanes(plane_id, final_end_pos);
         }
@@ -273,7 +282,7 @@ public class Game {
     private int calculateDestPos(int player_id, int from, int step) {
         if (from % 100 >= 13) {
             int pos_id = from % 100;
-            if (pos_id + step >19)
+            if (pos_id + step > 19)
                 return -1;
             return player_id * 100 + pos_id + step;
         }
@@ -340,7 +349,7 @@ public class Game {
                 }
             }
         }
-        System.out.println(this.planePosition);
+        System.out.println("plane moved:" + this.planePosition.toString());
     }
 
     /**
@@ -380,6 +389,8 @@ public class Game {
             if (un_stack)
                 this.planeStacks.remove(stack_removed);
         }
+        // add them into backPlanes
+        this.backPlane.addAll(diedPlanes);
         if (Main.DEBUG_MODE)
             System.out.println("Removed Planes:" + diedPlanes.toString());
     }
@@ -391,7 +402,7 @@ public class Game {
      */
     private boolean tryStackPlanes(int plane_id, int position_id) {
         for (PlaneStack planeStack : this.planeStacks) {
-            if (this.planePosition.get(planeStack.getStacked_planes().get(0)) == position_id) { // there is a stack in given position
+            if (this.planePosition.get(planeStack.getStacked_planes().toArray()[0]) == position_id) { // there is a stack in given position
                 if (!planeStack.getStacked_planes().contains(plane_id))
                     planeStack.addPlane(plane_id);
                 return true;
@@ -435,8 +446,12 @@ public class Game {
     }
 
     private void updateClients() {
+        updateClients(false);
+    }
+
+    private void updateClients(boolean isSkipped){
         var cbs = getChessboardStatus();
-        clients.values().forEach(c -> c.UpdateClientChessBoard(cbs, serverMovement));
+        clients.values().forEach(c -> c.UpdateClientChessBoard(cbs, movement, backPlane, isSkipped, false));
     }
 
     private void nextLoop() {

@@ -6,9 +6,12 @@ import me.luvletter.planechess.event.clientevents.DiceEvent;
 import me.luvletter.planechess.event.clientevents.ShowOtherDiceEvent;
 import me.luvletter.planechess.event.clientevents.UpdateChessboardEvent;
 
+import java.util.HashSet;
+
 public class LocalClient extends Client {
 
     private final EventManager clientEventManager;
+
     public LocalClient(int player_id) {
         super(player_id);
         clientEventManager = new EventManager();
@@ -20,14 +23,14 @@ public class LocalClient extends Client {
 
     /**
      * For Test Only
-     * */
-    public void forceMove(int plane_id, int position, boolean immediate_update){
+     */
+    public void forceMove(int plane_id, int position, boolean immediate_update) {
 
     }
 
     @Override
-    public void UpdateClientChessBoard(ChessBoardStatus cbs, ServerMovement movement) {
-        clientEventManager.push(new UpdateChessboardEvent(cbs, movement));
+    public void UpdateClientChessBoard(ChessBoardStatus cbs, Movement movement, HashSet<Integer> backPlanes, boolean isSkipped, boolean isInitialize) {
+        clientEventManager.push(new UpdateChessboardEvent(cbs, movement, backPlanes, isSkipped, isInitialize));
     }
 
     @Override
