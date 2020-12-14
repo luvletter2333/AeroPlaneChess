@@ -45,5 +45,14 @@ public class ChessBoardStatus {
         return stacks;
     }
 
-
+    @Override
+    public String toString() {
+        return "ChessBoardStatus{" +
+                "player_Count=" + player_Count +
+                ", planePosition=" + planePosition +
+                ", stacks=" + stacks +
+                ", isWin=" + isWin +
+                ", wonPlayer=" + wonPlayer +
+                '}';
+    }
 }

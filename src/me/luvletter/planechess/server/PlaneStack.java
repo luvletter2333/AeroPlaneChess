@@ -1,11 +1,12 @@
 package me.luvletter.planechess.server;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 
 public class PlaneStack {
-    private final ArrayList<Integer> stacked_planes = new ArrayList<>();
+    private final HashSet<Integer> stacked_planes = new HashSet<>();
 
-    public ArrayList<Integer> getStacked_planes() {
+    public HashSet<Integer> getStacked_planes() {
         return stacked_planes;
     }
 

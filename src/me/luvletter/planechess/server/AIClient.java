@@ -1,5 +1,7 @@
 package me.luvletter.planechess.server;
 
+import java.util.HashSet;
+
 public class AIClient extends Client {
     public AIClient(int player_id) {
         super(player_id);
@@ -16,7 +18,7 @@ public class AIClient extends Client {
     }
 
     @Override
-    public void UpdateClientChessBoard(ChessBoardStatus cbs, ServerMovement movement) {
+    public void UpdateClientChessBoard(ChessBoardStatus cbs, Movement movement, HashSet<Integer> backPlanes, boolean isSkippped, boolean isInitialize){
 
     }
 

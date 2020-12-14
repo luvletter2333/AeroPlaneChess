@@ -5,7 +5,7 @@ import java.util.*;
 public final class PositionList {
     /**
      * 1xx
-     * */
+     */
     public static final Map<Integer, Position> RedPositions = Collections.unmodifiableMap(new HashMap<>(20) {{
         put(100, new Position(100, 169, 593));
         put(101, new Position(101, 180, 523));
@@ -31,7 +31,7 @@ public final class PositionList {
 
     /**
      * 2xx
-     * */
+     */
     public static final Map<Integer, Position> YellowPositions = Collections.unmodifiableMap(new HashMap<>(20) {{
         put(200, new Position(200, 22, 166));
         put(201, new Position(201, 89, 179));
@@ -57,7 +57,7 @@ public final class PositionList {
 
     /**
      * 3xx
-     * */
+     */
     public static final Map<Integer, Position> BluePositions = Collections.unmodifiableMap(new HashMap<>(20) {{
         put(300, new Position(300, 439, 25));
         put(301, new Position(301, 430, 89));
@@ -83,7 +83,7 @@ public final class PositionList {
 
     /**
      * 4xx
-     * */
+     */
     public static final Map<Integer, Position> GreenPositions = Collections.unmodifiableMap(new HashMap<>(20) {{
         put(400, new Position(400, 592, 444));
         put(401, new Position(401, 520, 430));
@@ -116,7 +116,7 @@ public final class PositionList {
 
     /**
      * Positions in the order of circleBoard
-     * */
+     */
     public static final List<Integer> circleBoard = Collections.unmodifiableList(new ArrayList<>(52) {{
         add(101);
         add(211);
@@ -171,4 +171,22 @@ public final class PositionList {
         add(307);
         add(404);
     }});
+
+    /**
+     * fix indexing starting point
+     * */
+    public static int safeIndexOfCircleBoard(int position, int player_id) {
+        int index = circleBoard.indexOf(position);
+        if (index == -1) {
+            // fix starting point
+            index = switch (player_id) {
+                case 1 -> PositionList.circleBoard.indexOf(307);
+                case 2 -> PositionList.circleBoard.indexOf(407);
+                case 3 -> PositionList.circleBoard.indexOf(107);
+                case 4 -> PositionList.circleBoard.indexOf(207);
+                default -> 0;
+            };
+        }
+        return index;
+    }
 }

@@ -1,6 +1,8 @@
 package me.luvletter.planechess.server;
 
 
+import java.util.HashSet;
+
 public abstract class Client {
 
     public final int player_id;
@@ -18,7 +20,7 @@ public abstract class Client {
 
     public abstract void declareWin(int wonPlayer);
 
-    public abstract void UpdateClientChessBoard(ChessBoardStatus cbs, ServerMovement movement);
+    public abstract void UpdateClientChessBoard(ChessBoardStatus cbs, Movement movement, HashSet<Integer> backPlanes, boolean isSkipped, boolean isInitialize);
 
     public abstract void Dice(DiceType diceType, int dice_count, int dice_result);
 
