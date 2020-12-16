@@ -177,6 +177,8 @@ public class Game {
     private boolean antiCheat(int plane_id, int step) {
         if (step <= 0)
             return false;
+        if (step > 12)
+            return false;
         if (this.dice_player_id != plane_id / 10) // not your turn!!
             return false;
         if (this.dice_moved)     // you have moved!!
@@ -223,7 +225,7 @@ public class Game {
 
         int final_end_pos = end_pos;
 
-        if (end_pos / 100 == plane_id / 10 && end_pos % 100 < 13) {  // the same color -> ready to jump (first jump)
+        if (end_pos / 100 == plane_id / 10 && end_pos % 100 <= 13) {  // the same color -> ready to jump (first jump)
             // whether there are some planes in the first jump destination position
             tryBackPlanes(plane_id, end_pos, start_pos);
             // if the first jump is a fly, then it leads a double jump
@@ -449,7 +451,7 @@ public class Game {
         updateClients(false);
     }
 
-    private void updateClients(boolean isSkipped){
+    private void updateClients(boolean isSkipped) {
         var cbs = getChessboardStatus();
         clients.values().forEach(c -> c.UpdateClientChessBoard(cbs, movement, backPlane, isSkipped, false));
     }
@@ -478,7 +480,10 @@ public class Game {
     public void testforceMoveTo(int plane_id, int dest) {
         if (!Main.DEBUG_MODE)
             return;
+        int start_pos = this.planePosition.get(plane_id);
         movePlane(plane_id, dest);
+        this.backPlane = new HashSet<>();
+        this.movement = new Movement(plane_id, start_pos, dest);
         updateClients();
     }
 
