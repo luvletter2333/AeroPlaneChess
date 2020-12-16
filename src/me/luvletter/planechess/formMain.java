@@ -5,6 +5,7 @@ import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
+import java.util.ArrayList;
 
 import me.luvletter.planechess.client.*;
 import me.luvletter.planechess.event.EventManager;
@@ -15,6 +16,7 @@ import me.luvletter.planechess.event.clientevents.UpdateChessboardEvent;
 import me.luvletter.planechess.server.ChessBoardStatus;
 import me.luvletter.planechess.server.DiceType;
 import me.luvletter.planechess.server.LocalClient;
+import me.luvletter.planechess.server.PlaneStack;
 
 import static me.luvletter.planechess.client.DiceAnimationHelper.*;
 
@@ -170,6 +172,8 @@ public class formMain {
     }
 
     //private ArrayList<Animation>
+    private ChessBoardStatus lastCBS;
+
     private void update_chessboard(UpdateChessboardEvent e) {
         if (e.isSkipped) {
             // TODO: Add skipping message
@@ -190,10 +194,11 @@ public class formMain {
             System.out.println("first drawing finished!!");
         } else {
             // TODO: second draw with animation
-            var animation = new Animation(cbs, e.movement, e.backPlanes);
+            var animation = new Animation(cbs, lastCBS, e.movement, e.backPlanes);
             animation.Animate(dpanel_Main);
             System.out.println(animation);
         }
+        lastCBS = cbs;
     }
 
     // Show dicing animation
@@ -201,7 +206,8 @@ public class formMain {
         if (this.dice_type == DiceType.Fly) {
             this.label_Down.setText("You are dicing. Round 1! Good luck~");
             diceAnimate(label_status, dpanel_Dice, getDiceResultinRound(e.diceResult, 1), 1);
-            sleep(3000);
+            // sleep(3000);
+            // TODO: Debug Only!
 
             this.label_Down.setText("You are dicing. Round 2! Good luck~");
             diceAnimate(label_status, dpanel_Dice, getDiceResultinRound(e.diceResult, 2), 2);

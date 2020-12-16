@@ -1,9 +1,11 @@
 package me.luvletter.planechess.client;
 
 import me.luvletter.planechess.Main;
+import me.luvletter.planechess.server.PlaneStack;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.util.ArrayList;
 import java.util.HashMap;
 
 import static me.luvletter.planechess.client.Resource.getPlaneImage;
@@ -14,10 +16,6 @@ public class DrawHelper {
      *
      * @param plane_id for debug only
      */
-    public static void drawPlane(Graphics g, Point phyPoint, int planeColor, int plane_id) {
-        drawPlane(g, phyPoint, getPlaneImage(planeColor), plane_id);
-    }
-
     public static void drawPlane(Graphics g, Point phyPoint, BufferedImage plane_img, int plane_id) {
         g.drawImage(plane_img, phyPoint.X - 10, phyPoint.Y - 10, 20, 20, null);
         // scale 30x30 -> 20x20
@@ -39,11 +37,10 @@ public class DrawHelper {
         return ResultImage;
     }
 
-
     public void Draw(int plane_id, int raw_position_id) {
         // key -> 24 means the fourth plane of player 2
         final int player_id = plane_id / 10; // from 1 to 4
-        final Point pos = (raw_position_id % 100 == 99) ? HangerPoints.get(plane_id)
+        final Point point = (raw_position_id % 100 == 99) ? HangerPoints.get(plane_id)
                 : switch (raw_position_id / 100) {
             case 1 -> PositionList.RedPositions.get(raw_position_id).Point;
             case 2 -> PositionList.YellowPositions.get(raw_position_id).Point;
@@ -51,7 +48,7 @@ public class DrawHelper {
             case 4 -> PositionList.GreenPositions.get(raw_position_id).Point;
             default -> null;
         };
-        drawPlane(g, pos, player_id, plane_id);
+            drawPlane(g, point, getPlaneImage(player_id), plane_id);
     }
 
 

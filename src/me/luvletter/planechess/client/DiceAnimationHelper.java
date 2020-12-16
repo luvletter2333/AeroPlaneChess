@@ -36,7 +36,8 @@ public class DiceAnimationHelper {
             for(int i=1;i<9;i++){ // Animation loop
                 label_status.setText(convertToMultiline("Round " + dice_round + ".\nYou are dicing" + ".".repeat(i % 3 + 2)));
                 dpanel_Dice.Draw(getAnimationImage(i));
-                Thread.sleep(300);
+                //Thread.sleep(300);
+                //TODO: Debug Only!
             }
             //Thread.sleep(1000);
         } catch (InterruptedException interruptedException) {
