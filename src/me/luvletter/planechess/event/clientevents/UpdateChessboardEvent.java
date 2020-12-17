@@ -15,11 +15,14 @@ public final class UpdateChessboardEvent extends Event {
     public final boolean isInitialize;
     public final Movement movement;
     public final HashSet<Integer> backPlanes;
+
     public UpdateChessboardEvent(ChessBoardStatus cbs, Movement movement, HashSet<Integer> backPlanes, boolean isSkipped, boolean isInitialize) {
         super(EventType.UpdateChessboard);
         this.cbs = cbs;
         this.movement = movement;
-        this.backPlanes = backPlanes;
+        this.backPlanes = new HashSet<>();
+        if (backPlanes != null)
+            this.backPlanes.addAll(backPlanes);
         this.isSkipped = isSkipped;
         this.isInitialize = isInitialize;
     }

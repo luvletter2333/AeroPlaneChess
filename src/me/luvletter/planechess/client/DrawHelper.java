@@ -3,10 +3,12 @@ package me.luvletter.planechess.client;
 import me.luvletter.planechess.Main;
 import me.luvletter.planechess.server.PlaneStack;
 
+import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Set;
 
 import static me.luvletter.planechess.client.Resource.getPlaneImage;
 
@@ -25,12 +27,33 @@ public class DrawHelper {
         }
     }
 
+    /**
+     * draw a stack of planes
+     * planeColor: 1,2,3,4 => Red, Yellow, Blue, Green
+     *
+     * @param planes a bunch of planes' ID
+     */
+    public static void drawPlane(Graphics g, Point phyPoint, BufferedImage plane_img, java.util.List<Integer> planes) {
+        for (int i = 0; i < planes.size(); i++) {
+            // scale 30x30 -> 20x20
+            g.drawImage(plane_img, phyPoint.X - 10 + i * 10, phyPoint.Y - 10 + i * 10, 20, 20, null);
+            if (Main.DEBUG_MODE)
+                g.drawString(planes.get(i).toString(), phyPoint.X + 10 + i * 10, phyPoint.Y + 10 + i * 10);
+            // under debug mode, draw plane_ID;
+        }
+    }
+
     private final BufferedImage ResultImage;
     private final Graphics g;
 
     public DrawHelper() {
         this.ResultImage = Resource.copyImage(Resource.getResource(ResourceType.ChessBoard));
         g = this.ResultImage.getGraphics();
+    }
+
+    public DrawHelper(BufferedImage srcImg) {
+        this.ResultImage = srcImg;
+        this.g = this.ResultImage.createGraphics();
     }
 
     public BufferedImage getResultImage() {
@@ -48,7 +71,19 @@ public class DrawHelper {
             case 4 -> PositionList.GreenPositions.get(raw_position_id).Point;
             default -> null;
         };
-            drawPlane(g, point, getPlaneImage(player_id), plane_id);
+        drawPlane(this.g, point, getPlaneImage(player_id), plane_id);
+    }
+
+    public void Draw(java.util.List<Integer> stack, int raw_position_id) {
+        final int player_id = stack.get(0) / 10;
+        final Point point = switch (raw_position_id / 100) {
+            case 1 -> PositionList.RedPositions.get(raw_position_id).Point;
+            case 2 -> PositionList.YellowPositions.get(raw_position_id).Point;
+            case 3 -> PositionList.BluePositions.get(raw_position_id).Point;
+            case 4 -> PositionList.GreenPositions.get(raw_position_id).Point;
+            default -> null;
+        };
+        drawPlane(this.g, point, getPlaneImage(player_id), stack);
     }
 
 

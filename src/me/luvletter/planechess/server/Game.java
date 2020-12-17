@@ -409,9 +409,19 @@ public class Game {
                     planeStack.addPlane(plane_id);
                 return true;
             }
+            if(planeStack.getStacked_planes().contains(plane_id))
+            {
+                this.planePosition.forEach((pid, pps) -> {
+                    if (pid / 10 == plane_id / 10 && pps == position_id) {
+                        // create a stack
+                        planeStack.addPlane(pid);
+                    }
+                });
+                return true;
+            }
         }
         // there isn't any existing stack
-        var stack = new PlaneStack().addPlane(plane_id);
+        var stack = new PlaneStack(plane_id);
         this.planePosition.forEach((pid, pps) -> {
             if (pid / 10 == plane_id / 10 && pps == position_id) {
                 // create a stack

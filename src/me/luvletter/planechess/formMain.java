@@ -172,7 +172,7 @@ public class formMain {
     }
 
     //private ArrayList<Animation>
-    private ChessBoardStatus lastCBS;
+    private volatile ChessBoardStatus lastCBS;
 
     private void update_chessboard(UpdateChessboardEvent e) {
         if (e.isSkipped) {
@@ -195,8 +195,9 @@ public class formMain {
         } else {
             // TODO: second draw with animation
             var animation = new Animation(cbs, lastCBS, e.movement, e.backPlanes);
-            animation.Animate(dpanel_Main);
             System.out.println(animation);
+            animation.Animate(dpanel_Main);
+            animation.FinalDraw(dpanel_Main);
         }
         lastCBS = cbs;
     }

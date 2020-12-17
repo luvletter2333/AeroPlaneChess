@@ -10,9 +10,11 @@ public class ChessBoardStatus {
     private final int wonPlayer;
 
     public ChessBoardStatus(int player_count, HashMap<Integer, Integer> pos, ArrayList<PlaneStack> stacks, boolean isWin, int wonPlayer) {
-        this.planePosition = pos;
+        this.planePosition = new HashMap<>(pos);
         this.player_Count = player_count;
-        this.stacks = stacks;
+        this.stacks = new ArrayList<>();
+        for (PlaneStack stack : stacks)
+            this.stacks.add(stack.deepCopy());
         this.isWin = isWin;
         this.wonPlayer = wonPlayer;
     }
@@ -39,8 +41,7 @@ public class ChessBoardStatus {
 
     /**
      * @return a set of PlaneStack
-     *
-     * */
+     */
     public ArrayList<PlaneStack> getStacks() {
         return stacks;
     }
