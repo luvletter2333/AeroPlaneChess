@@ -6,6 +6,7 @@ import me.luvletter.planechess.server.PlaneStack;
 import me.luvletter.planechess.util.Utility;
 
 import javax.imageio.ImageIO;
+import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -44,9 +45,9 @@ public class Animation {
      */
     private void generateBaseImage(ArrayList<Integer> not_move_list) {
         not_move_list.forEach(plane_id -> {
-            drawHelper.Draw(plane_id, status.getPlanePosition().get(plane_id));
+            this.drawHelper.Draw(plane_id, this.status.getPlanePosition().get(plane_id));
         });
-        this.base_image = drawHelper.getResultImage();
+        this.base_image = this.drawHelper.getResultImage();
     }
 
     public BufferedImage getBase_image() {
@@ -57,9 +58,6 @@ public class Animation {
      * block thread and make animation on given Drawable JPanel
      */
     public void Animate(Drawable_JPanel dpanel) {
-        //TODO: fill Animate method
-        // Calculate path from keypoint given by server
-        // Bring stacked planes in the way
         var plane_img = Resource.getPlaneImage(movement.planeID / 10);
         if (this.movement.startPos % 100 == 99) {   // from hanger
             Point start_point = PositionList.all.containsKey(this.movement.startPos) ?
@@ -71,6 +69,7 @@ public class Animation {
             smallAnimation(this.base_image, plane_img, this.movement.planeID,
                     start_point, end_point, dpanel);
             return;
+            // no back situation
         }
         if (this.movement.endPos % 100 <= 13) {
             // dest in the circle
@@ -103,11 +102,31 @@ public class Animation {
         int c = 0;
         int nextPos;
         var plane_img = Resource.getPlaneImage(movement.planeID / 10);
-        // TODO: handle making stack on the way
+        //var base_img_withBP;
         do {
-            nextPos = keypoint.size() <= c ?
-                    endPos : keypoint.get(c);
+            nextPos = keypoint.size() <= c ? endPos : keypoint.get(c);
             // draw start -> keyPos this path
+
+            HashSet<Integer> stack = null;
+            for (PlaneStack planeStack : this.status.getStacks()) {
+                if(planeStack.hasPlane(this.movement.planeID)){
+                    // current plane in stack
+                    for (PlaneStack lastStatusStack : this.lastStatus.getStacks()) {
+                        if(lastStatusStack.hasPlane(this.movement.planeID))
+                        {
+                            stack =
+                        }
+                        else{
+
+                        }
+                    }
+                }
+            }
+            if (stack == null) {
+                stack = new HashSet<Integer>(4);
+                stack.add(this.movement.planeID);
+            }
+
             int start_index = PositionList.safeIndexOfCircleBoard(startPos, this.movement.planeID / 10);
             // the start point is the runway
             // fix index
@@ -118,8 +137,15 @@ public class Animation {
 
             for (int i = nextIndex(start_index); i != nextIndex(end_index); i = nextIndex(i)) {
                 Point targetPoint = PositionList.all.get(PositionList.circleBoard.get(i)).Point;
-                smallAnimation(base_image, plane_img, movement.planeID, start_point, targetPoint, dpanel);
+                smallAnimation(base_image, plane_img, stack, start_point, targetPoint, dpanel);
                 start_point = targetPoint;
+            }
+
+            // TODO: back and stack logic here
+            for (int backPlane : this.backPlanes) {
+                if (this.lastStatus.getPlanePosition().get(backPlane) == backPlane) {
+
+                }
             }
 
             startPos = nextPos;
@@ -133,22 +159,14 @@ public class Animation {
         return (index + 1) % 52;
     }
 
-    private void smallAnimation(BufferedImage back, BufferedImage plane_img, int plane_id, Point start_point, Point end_point, Drawable_JPanel dpanel) {
+    private static void smallAnimation(BufferedImage back, BufferedImage plane_img, HashSet<Integer> stack, Point start_point, Point end_point, Drawable_JPanel dpanel) {
         final double STEP = 20;
         final int SLEEP_TIME = 10;
-        HashSet<Integer> stacks;
-        // no stack situation
-        if (this.status.getStacks().stream().noneMatch(ps -> ps.hasPlane(plane_id))) {
-            stacks = new HashSet<>();
-            stacks.add(plane_id);
-        } else {
-            // in small Animation, we don't consider make stack in the way
-            stacks = getPlaneStack(this.status.getStacks(), plane_id);
-        }
         for (int i = 1; i <= STEP; i++) {
             final BufferedImage animate_img = Resource.copyImage(back);
-            for (Integer pid : stacks) {
-                DrawHelper.drawPlane(animate_img.getGraphics(),
+            Graphics g = animate_img.getGraphics();
+            for (Integer pid : stack) {
+                DrawHelper.drawPlane(g,
                         new Point(start_point.X + (end_point.X - start_point.X) * (i / STEP),
                                 start_point.Y + (end_point.Y - start_point.Y) * (i / STEP)),
                         plane_img, pid);
@@ -157,18 +175,10 @@ public class Animation {
             Utility.sleep(SLEEP_TIME);
         }
         final BufferedImage endImg = Resource.copyImage(back);
-        for (Integer pid : stacks) {
+        for (Integer pid : stack) {
             DrawHelper.drawPlane(endImg.getGraphics(), end_point, plane_img, pid);
         }
         dpanel.Draw(endImg);
-    }
-
-    private static HashSet<Integer> getPlaneStack(List<PlaneStack> planeStacks, int plane_id) {
-        for (PlaneStack planeStack : planeStacks) {
-            if (planeStack.hasPlane(plane_id))
-                return planeStack.getStacked_planes();
-        }
-        return null;
     }
 
     /**
