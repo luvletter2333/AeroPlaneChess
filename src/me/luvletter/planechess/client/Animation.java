@@ -44,12 +44,6 @@ public class Animation {
             this.drawHelper.Draw(lst, this.lastStatus.getPlanePosition().get(lst.get(0)));
         }
         this.baseImage = this.drawHelper.getResultImage();
-        try {
-            ImageIO.write(this.baseImage, "png", new File("/Users/luvletter/Desktop/test.png"));
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
     }
 
     public BufferedImage getBase_image() {
@@ -75,8 +69,8 @@ public class Animation {
                     DrawHelper.HangerPoints.get(this.movement.planeID);
             smallAnimation(this.baseImage, plane_img, stack,
                     start_point, end_point, dpanel);
-            return;
             // no back situation
+            return;
         }
         if (this.movement.endPos % 100 <= 13) {
             // dest in the circle
@@ -84,7 +78,8 @@ public class Animation {
             return;
         }
         // the end point is in the final approach
-        if (this.movement.startPos % 100 <= 13) { // startPos is not in the final approach
+        var lastStack = getStackerPlanesOrGenerate(this.lastStatus.getStacks(), this.movement.planeID);
+        if (this.movement.startPos % 100 < 13) { // startPos is not in the final approach
             // move to x13 first
             int middle_pos = this.movement.planeID / 10 * 100 + 13;
             circleAnimation(this.movement.startPos,
@@ -94,25 +89,49 @@ public class Animation {
             var start_point = PositionList.all.get(middle_pos).Point;
             var end_point = PositionList.all.get(this.movement.endPos).Point;
             smallAnimation(baseImage, plane_img, stack, start_point, end_point, dpanel);
-            return;
         } else {
             // startPos is already in the final approach
-            smallAnimation(baseImage, plane_img, stack,
-                    PositionList.all.get(this.movement.startPos).Point,
-                    PositionList.all.get(this.movement.endPos).Point,
-                    dpanel);
-            return;
+            // 最终跑道上的动画
+            if (this.movement.endPos % 100 == 19) {
+                // 原先stack已经被打散
+                // FIX: If go to 19, in currentStatus, there is no stack containing plane_ID
+                smallAnimation(baseImage, plane_img, lastStack,
+                        PositionList.all.get(this.movement.startPos).Point,
+                        PositionList.all.get(this.movement.endPos).Point,
+                        dpanel);
+            } else { // 不是直接到19
+                smallAnimation(baseImage, plane_img, stack,
+                        PositionList.all.get(this.movement.startPos).Point,
+                        PositionList.all.get(this.movement.endPos).Point,
+                        dpanel);
+            }
+        }
+        // try go back to hanger
+        if (this.movement.endPos % 100 == 19) {
+            // reach the endPoint
+            HashMap<Integer, AnimationMovement> movementHashMap = new HashMap<>();
+            lastStack.forEach(pid -> movementHashMap.put(pid,
+                    new AnimationMovement(PositionList.all.get(this.movement.endPos).Point,
+                            DrawHelper.HangerPoints.get(pid))));
+            smallAnimation(baseImage, Resource.getPlaneImage(this.movement.planeID / 10, this.movement.endPos), movementHashMap, dpanel);
         }
     }
 
     public BufferedImage FinalDraw(Drawable_JPanel dpanel) {
-        HashSet<Integer> stack = getStackerPlanesOrGenerate(this.status.getStacks(), this.movement.planeID);
         BufferedImage final_img = Resource.copyImage(this.baseImage);
-        DrawHelper.drawPlane(
-                final_img.getGraphics(),
-                PositionList.all.get(this.movement.endPos).Point,
-                Resource.getPlaneImage(this.movement.planeID / 10),
-                new ArrayList<>(stack));
+        if (this.movement.endPos % 100 != 19) {
+            HashSet<Integer> stack = getStackerPlanesOrGenerate(this.status.getStacks(), this.movement.planeID);
+            DrawHelper.drawPlane(
+                    final_img.getGraphics(),
+                    PositionList.all.get(this.movement.endPos).Point,
+                    Resource.getPlaneImage(this.movement.planeID / 10, this.movement.endPos),
+                    new ArrayList<>(stack));
+        } else {
+            // back to hanger
+            HashSet<Integer> stack = getStackerPlanesOrGenerate(this.lastStatus.getStacks(), this.movement.planeID);
+            stack.forEach(pid -> DrawHelper.drawPlane(final_img.getGraphics(), DrawHelper.HangerPoints.get(pid),
+                    Resource.getPlaneImage(pid / 10, this.status.getPlanePosition().get(pid)), pid));
+        }
         var dh = new DrawHelper(final_img);
         this.backPlanes.forEach(bp ->
                 dh.Draw(bp, this.status.getPlanePosition().get(bp)));
@@ -122,6 +141,8 @@ public class Animation {
     }
 
     private void circleAnimation(int startPos, int endPos, List<Integer> keypoint, Drawable_JPanel dpanel) {
+        if (startPos == endPos)
+            return;
         int c = 0;
         int nextPos;
         var plane_img = Resource.getPlaneImage(movement.planeID / 10);
@@ -141,12 +162,10 @@ public class Animation {
             added_planes.removeAll(stack);
         }
         do {
-            System.out.println(keypoint);
-            nextPos = keypoint.size() <= c ? endPos : keypoint.get(c);
+            nextPos = c < keypoint.size() ? keypoint.get(c) : endPos;
             var base_image = Resource.copyImage(this.baseImage);
             if (backplanes.size() > 0) {
                 var lst = new ArrayList<Integer>(backplanes);
-                System.out.println(lst);
                 for (PlaneStack pStack : this.lastStatus.getStacks()) {
                     var splist = new ArrayList<>(pStack.getStacked_planes());
                     if (backplanes.contains(splist.get(0))) {
@@ -185,8 +204,6 @@ public class Animation {
                     }
                 }
             }
-            System.out.printf("From:%s To: %s Stack:%s need_add_stack:%s\n", startPos, nextPos, stack, added_planes);
-
             // draw start -> keyPos this path
             if (isFlyingPoint(startPos)) { // Handle Flying
                 Point start_point = PositionList.all.get(startPos).Point;
@@ -241,7 +258,6 @@ public class Animation {
                                         Resource.getPlaneImage(bp / 10), bp)
                         ); // 绘制已经滚会仓库的飞机
 
-                var lst = new ArrayList<Integer>(backplanes);
                 backplanes.forEach(bpid ->
                         DrawHelper.drawPlane(
                                 clearBackImage.getGraphics(),
@@ -249,7 +265,6 @@ public class Animation {
                                 Resource.getPlaneImage(bpid / 10),
                                 bpid)
                 ); // has not been removed
-                dpanel.Draw(clearBackImage);
 
                 smallAnimation(clearBackImage, bp_end_points, dpanel);
                 hasBackedPlanes.addAll(bp_end_points.keySet());
@@ -257,7 +272,7 @@ public class Animation {
 
             startPos = nextPos;
             c++;
-            if (nextPos == this.movement.endPos)
+            if (nextPos == endPos)
                 break;
         } while (true);
     }
@@ -312,9 +327,10 @@ public class Animation {
         return (index + 1) % 52;
     }
 
-    private static BufferedImage smallAnimation(BufferedImage back, BufferedImage plane_img, HashSet<Integer> stack, Point start_point, Point end_point, Drawable_JPanel dpanel) {
-        final double STEP = 50;
-        final int SLEEP_TIME = 10;
+    private static final double STEP = 50;
+    private static final int SLEEP_TIME = 10;
+
+    private static void smallAnimation(BufferedImage back, BufferedImage plane_img, HashSet<Integer> stack, Point start_point, Point end_point, Drawable_JPanel dpanel) {
         for (int i = 1; i <= STEP; i++) {
             final BufferedImage animate_img = Resource.copyImage(back);
             Graphics g = animate_img.getGraphics();
@@ -328,12 +344,9 @@ public class Animation {
         final BufferedImage endImg = Resource.copyImage(back);
         DrawHelper.drawPlane(endImg.getGraphics(), end_point, plane_img, new ArrayList<>(stack));
         dpanel.Draw(endImg);
-        return endImg;
     }
 
-    private static BufferedImage smallAnimation(BufferedImage back, Map<Integer, AnimationMovement> planes, Drawable_JPanel dpanel) {
-        final double STEP = 50;
-        final int SLEEP_TIME = 10;
+    private static void smallAnimation(BufferedImage back, Map<Integer, AnimationMovement> planes, Drawable_JPanel dpanel) {
         for (int i = 1; i <= STEP; i++) {
             final BufferedImage animate_img = Resource.copyImage(back);
             Graphics g = animate_img.getGraphics();
@@ -352,7 +365,27 @@ public class Animation {
             DrawHelper.drawPlane(endImg.getGraphics(), animationMovement.endPoint, Resource.getPlaneImage(pid / 10), pid);
         });
         dpanel.Draw(endImg);
-        return endImg;
+    }
+
+    private static void smallAnimation(BufferedImage back, BufferedImage planeImage, HashMap<Integer, AnimationMovement> planes, Drawable_JPanel dpanel) {
+        for (int i = 1; i <= STEP; i++) {
+            final BufferedImage animate_img = Resource.copyImage(back);
+            Graphics g = animate_img.getGraphics();
+            for (int pid : planes.keySet()) {
+                AnimationMovement animationMovement = planes.get(pid);
+                DrawHelper.drawPlane(g,
+                        new Point(animationMovement.startPoint.X + (animationMovement.endPoint.X - animationMovement.startPoint.X) * (i / STEP),
+                                animationMovement.startPoint.Y + (animationMovement.endPoint.Y - animationMovement.startPoint.Y) * (i / STEP)),
+                        planeImage, pid);
+            }
+            dpanel.Draw(animate_img);
+            Utility.sleep(SLEEP_TIME);
+        }
+        final BufferedImage endImg = Resource.copyImage(back);
+        planes.forEach((pid, animationMovement) -> {
+            DrawHelper.drawPlane(endImg.getGraphics(), animationMovement.endPoint, planeImage, pid);
+        });
+        dpanel.Draw(endImg);
     }
 
     @Override
@@ -362,8 +395,6 @@ public class Animation {
                 "\nlastStatus=" + lastStatus +
                 "\n, movement=" + movement +
                 ", backPlanes=" + backPlanes +
-                ", drawHelper=" + drawHelper +
-                ", base_image=" + baseImage +
                 '}';
     }
 }

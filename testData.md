@@ -9,7 +9,7 @@ forceMoveTo 13 102
 
 forceMove 11 2 true
 
-
+restart
 
 
 ## 吃子动画
@@ -22,7 +22,7 @@ forceMoveTo 22 102
 
 forceMove 11 1 true
 
-
+restart
 ## 吃子动画2
 
 
@@ -37,7 +37,7 @@ forceMove 22 2 true
 forceMoveTo 23 102
 
 forceMove 11 1 true
-
+restart
 
 ## 吃子动画3
 
@@ -54,7 +54,7 @@ forceMoveTo 32 316
 forceMove 31 1 true
 
 forceMove 11 4 true
-
+restart
 ## 吃子动画4
 
 forceMoveTo 11 103
@@ -76,3 +76,31 @@ forceMoveTo 42 411
 forceMove 42 1 true
 
 forceMove 11 4 true
+restart
+## 移动动画
+
+forceMoveTo 44 413
+
+forceMove 44 2 true
+
+forceMoveTo 41 414
+
+forceMove 41 1 true
+restart
+## 移动动画 2
+
+forceMoveTo 41 303
+
+forceMove 41 1 true
+
+## Move Animation
+
+forceMoveTo 22 217
+forceMoveTo 21 218
+forceMove 22 1 true
+forceMove 22 1 true
+forceMoveTo 11 100 true
+restart
+
+
+

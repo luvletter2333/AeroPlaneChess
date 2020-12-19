@@ -46,6 +46,8 @@ public class Main {
         var client = new LocalClient(1);
         game.addClient(client);
         game.addClient(new AIClient(2));
+        game.addClient(new AIClient(3));
+        game.addClient(new AIClient(4));
 
         var form = new formMain(client, client.getClientEventManager());
         var gui = new JFrame("Test App");

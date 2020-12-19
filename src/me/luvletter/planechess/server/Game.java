@@ -44,6 +44,7 @@ public class Game {
         if (player_ids.size() != player_Count)
             throw new IllegalArgumentException("size of player_ids should equal to player_Count");
         this.player_ids = new ArrayList<>(player_ids);
+        player_ids.sort(Integer::compareTo);
         this.planePosition = new HashMap<>();
         for (int id : player_ids) {
             planePosition.put(id * 10 + 1, id * 100 + 99);
@@ -69,6 +70,8 @@ public class Game {
 
     public void announceStart() {
         synchronized (lock_obj) {
+            if (!canStart())
+                return;
             var init_cbs = getChessboardStatus();
             clients.values().forEach(client -> client.UpdateClientChessBoard(init_cbs, null, null, false, true));
             int start_player = player_ids.stream().min(Integer::compareTo).get();
@@ -78,6 +81,10 @@ public class Game {
                     .filter(c -> c.player_id != start_player)
                     .forEach(c -> c.ShowOtherDiceResult(start_player, DiceType.Fly, 2, dice_result));
         }
+    }
+
+    public boolean canStart() {
+        return this.clients.size() == this.Player_Count;
     }
 
     public boolean takeOff(int player_id) {
@@ -198,7 +205,7 @@ public class Game {
         if (possibleMove.stream().noneMatch(mv -> mv == step))
             return false;
 
-        if (this.calculateDestPos(plane_id / 10, this.planePosition.get(plane_id), step) == -1)
+        if (calculateDestPos(plane_id / 10, this.planePosition.get(plane_id), step) == -1)
             return false;       // out of bound
 
         return true;
@@ -225,7 +232,8 @@ public class Game {
 
         int final_end_pos = end_pos;
 
-        if (end_pos / 100 == plane_id / 10 && end_pos % 100 <= 13) {  // the same color -> ready to jump (first jump)
+        if (end_pos / 100 == plane_id / 10 && end_pos % 100 < 13) {
+            // the same color -> ready to jump (first jump)
             // whether there are some planes in the first jump destination position
             tryBackPlanes(plane_id, end_pos, start_pos);
             // if the first jump is a fly, then it leads a double jump
@@ -283,7 +291,7 @@ public class Game {
      *
      * @return 104, 205, etc. -1 means out of bound.
      */
-    private int calculateDestPos(int player_id, int from, int step) {
+    private static int calculateDestPos(int player_id, int from, int step) {
         if (from % 100 >= 13) {
             int pos_id = from % 100;
             if (pos_id + step > 19)
@@ -291,17 +299,7 @@ public class Game {
             return player_id * 100 + pos_id + step;
         }
         // we assume it still in the circle loop
-        int start_index = PositionList.circleBoard.indexOf(from);
-        if (start_index == -1) {
-            // fix starting point
-            start_index = switch (player_id) {
-                case 1 -> PositionList.circleBoard.indexOf(307);
-                case 2 -> PositionList.circleBoard.indexOf(407);
-                case 3 -> PositionList.circleBoard.indexOf(107);
-                case 4 -> PositionList.circleBoard.indexOf(207);
-                default -> 0;
-            };
-        }
+        int start_index = PositionList.safeIndexOfCircleBoard(from, player_id);
         int end_index = 0;
         for (int i = 0; i <= step; i++) {
             end_index = (start_index + i) % 52;
@@ -357,8 +355,8 @@ public class Game {
                 var planeStack = iterator.next();
                 if (planeStack.hasPlane(plane_id)) { // not to the end point
                     if (destPos % 100 == 19) {
-                        planeStack.getStacked_planes().forEach(
-                                stacked_plane_id -> this.planePosition.put(stacked_plane_id, destPos / 100 + 98));
+//                        planeStack.getStacked_planes().forEach(
+//                                stacked_plane_id -> this.planePosition.put(stacked_plane_id, destPos / 100 + 19));
                         iterator.remove(); // unstack
                     } else {
                         planeStack.getStacked_planes().forEach(
@@ -368,7 +366,6 @@ public class Game {
                 }
             }
         }
-        System.out.println("plane moved:" + this.planePosition.toString());
     }
 
     /**
@@ -420,6 +417,8 @@ public class Game {
      * @return true -> success, false -> not satisfied planes
      */
     private boolean tryStackPlanes(int plane_id, int position_id) {
+        if (position_id % 100 == 19)
+            return false;
         for (PlaneStack planeStack : this.planeStacks) {
             if (this.planePosition.get(planeStack.getStacked_planes().toArray()[0]) == position_id) { // there is a stack in given position
                 if (!planeStack.getStacked_planes().contains(plane_id))
@@ -457,12 +456,10 @@ public class Game {
      * @param player_id 1, 2, 3, 4
      */
     private boolean checkWin(int player_id) {
-        // TODO: assign position 198 to planes which arrive the final
         return this.planePosition.entrySet().stream()
                 .filter(entry -> entry.getKey() / 10 == player_id)
-                .allMatch(entry -> entry.getValue() % 100 == 98);
+                .allMatch(entry -> entry.getValue() % 100 == 19);
     }
-
 
     private ChessBoardStatus getChessboardStatus() {
         return new ChessBoardStatus(this.Player_Count, this.planePosition, this.planeStacks, has_won, win_player_id);

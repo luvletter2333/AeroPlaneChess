@@ -193,8 +193,8 @@ public class formMain {
         } else {
             var animation = new Animation(cbs, lastCBS, e.movement, e.backPlanes);
             System.out.println(animation);
-            animation.Animate(dpanel_Main);
-            lastImgae = animation.FinalDraw(dpanel_Main);
+             animation.Animate(dpanel_Main);
+             lastImgae = animation.FinalDraw(dpanel_Main);
         }
         lastCBS = cbs;
     }

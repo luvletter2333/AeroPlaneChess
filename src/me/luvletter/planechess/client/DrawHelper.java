@@ -63,17 +63,18 @@ public class DrawHelper {
     public void Draw(int plane_id, int raw_position_id) {
         // key -> 24 means the fourth plane of player 2
         final int player_id = plane_id / 10; // from 1 to 4
-        final Point point = (raw_position_id % 100 == 99) ? HangerPoints.get(plane_id)
-                : switch (raw_position_id / 100) {
-            case 1 -> PositionList.RedPositions.get(raw_position_id).Point;
-            case 2 -> PositionList.YellowPositions.get(raw_position_id).Point;
-            case 3 -> PositionList.BluePositions.get(raw_position_id).Point;
-            case 4 -> PositionList.GreenPositions.get(raw_position_id).Point;
-            default -> null;
-        };
+        Point point;
+        if (raw_position_id % 100 == 99)
+            point = HangerPoints.get(plane_id);
+        else if (raw_position_id % 100 == 19) {
+            point = HangerPoints.get(plane_id);
+        } else point = PositionList.all.get(raw_position_id).Point;
         drawPlane(this.g, point, getPlaneImage(plane_id / 10, raw_position_id), plane_id);
     }
 
+    /**
+     * raw_position_id shouldn't be 19!!
+     */
     public void Draw(java.util.List<Integer> stack, int raw_position_id) {
         final int player_id = stack.get(0) / 10;
         final Point point = switch (raw_position_id / 100) {
@@ -83,7 +84,7 @@ public class DrawHelper {
             case 4 -> PositionList.GreenPositions.get(raw_position_id).Point;
             default -> null;
         };
-        drawPlane(this.g, point,  getPlaneImage(player_id, raw_position_id), stack);
+        drawPlane(this.g, point, getPlaneImage(player_id, raw_position_id), stack);
     }
 
 

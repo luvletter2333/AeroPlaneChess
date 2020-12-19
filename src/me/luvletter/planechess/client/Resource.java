@@ -32,7 +32,7 @@ public class Resource {
     }
 
     public static BufferedImage getPlaneImage(int planeColor, int planePos) {
-        if (planePos % 100 != 98)
+        if (planePos % 100 != 19)
             return getPlaneImage(planeColor);
         return switch (planeColor) {
             case 1 -> Resource.getResource(ResourceType.Win_Red_Plane);
