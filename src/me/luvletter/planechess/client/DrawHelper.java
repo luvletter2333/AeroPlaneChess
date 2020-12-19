@@ -71,7 +71,7 @@ public class DrawHelper {
             case 4 -> PositionList.GreenPositions.get(raw_position_id).Point;
             default -> null;
         };
-        drawPlane(this.g, point, getPlaneImage(player_id), plane_id);
+        drawPlane(this.g, point, getPlaneImage(plane_id / 10, raw_position_id), plane_id);
     }
 
     public void Draw(java.util.List<Integer> stack, int raw_position_id) {
@@ -83,7 +83,7 @@ public class DrawHelper {
             case 4 -> PositionList.GreenPositions.get(raw_position_id).Point;
             default -> null;
         };
-        drawPlane(this.g, point, getPlaneImage(player_id), stack);
+        drawPlane(this.g, point,  getPlaneImage(player_id, raw_position_id), stack);
     }
 
 

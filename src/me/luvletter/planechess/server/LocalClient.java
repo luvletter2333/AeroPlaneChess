@@ -53,9 +53,4 @@ public class LocalClient extends Client {
     public boolean isReady() {
         return true;
     }
-
-    @Override
-    public void declareWin(int wonPlayer) {
-        clientEventManager.push(new AnnounceWinEvent(wonPlayer));
-    }
 }

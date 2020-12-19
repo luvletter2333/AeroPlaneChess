@@ -272,8 +272,10 @@ public class Game {
                 tryStackPlanes(plane_id, final_end_pos);
         }
         // check win
-        if (checkWin(plane_id / 10))
-            declareWin(plane_id / 10);
+        if (checkWin(plane_id / 10)) {
+            this.has_won = true;
+            this.win_player_id = plane_id / 10;
+        }
     }
 
     /**
@@ -350,6 +352,21 @@ public class Game {
                     break;
                 }
             }
+            var iterator = this.planeStacks.iterator();
+            while (iterator.hasNext()) {
+                var planeStack = iterator.next();
+                if (planeStack.hasPlane(plane_id)) { // not to the end point
+                    if (destPos % 100 == 19) {
+                        planeStack.getStacked_planes().forEach(
+                                stacked_plane_id -> this.planePosition.put(stacked_plane_id, destPos / 100 + 98));
+                        iterator.remove(); // unstack
+                    } else {
+                        planeStack.getStacked_planes().forEach(
+                                stacked_plane_id -> this.planePosition.put(stacked_plane_id, destPos));
+                    }
+                    break;
+                }
+            }
         }
         System.out.println("plane moved:" + this.planePosition.toString());
     }
@@ -409,8 +426,7 @@ public class Game {
                     planeStack.addPlane(plane_id);
                 return true;
             }
-            if(planeStack.getStacked_planes().contains(plane_id))
-            {
+            if (planeStack.getStacked_planes().contains(plane_id)) {
                 this.planePosition.forEach((pid, pps) -> {
                     if (pid / 10 == plane_id / 10 && pps == position_id) {
                         // create a stack
@@ -444,14 +460,9 @@ public class Game {
         // TODO: assign position 198 to planes which arrive the final
         return this.planePosition.entrySet().stream()
                 .filter(entry -> entry.getKey() / 10 == player_id)
-                .allMatch(entry -> entry.getValue() % 100 == 19);
+                .allMatch(entry -> entry.getValue() % 100 == 98);
     }
 
-    private void declareWin(int player_id) {
-        this.has_won = true;
-        this.win_player_id = player_id;
-        clients.values().forEach(c -> c.declareWin(player_id));
-    }
 
     private ChessBoardStatus getChessboardStatus() {
         return new ChessBoardStatus(this.Player_Count, this.planePosition, this.planeStacks, has_won, win_player_id);

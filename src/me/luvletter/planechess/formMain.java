@@ -132,8 +132,6 @@ public class formMain {
 
     // Events
     private void showDice(DiceEvent e) {
-        // TODO: DiceType -> Fly or Battle
-
         if (e.diceType == DiceType.Fly) {
             this.dice_type = e.diceType;
             this.dice_count = e.diceCount;
@@ -172,7 +170,8 @@ public class formMain {
     }
 
     //private ArrayList<Animation>
-    private volatile ChessBoardStatus lastCBS;
+    private ChessBoardStatus lastCBS;
+    private BufferedImage lastImgae;
 
     private void update_chessboard(UpdateChessboardEvent e) {
         if (e.isSkipped) {
@@ -188,16 +187,14 @@ public class formMain {
                 drawer.Draw(plane_id, raw_pos);
             });
             dpanel_Main.Draw(drawer.getResultImage());
-            // FIXME: comment last_cbs: draw directly
             // save img for previewing render
             this.preview_baseImg = drawer.getResultImage();
             System.out.println("first drawing finished!!");
         } else {
-            // TODO: second draw with animation
             var animation = new Animation(cbs, lastCBS, e.movement, e.backPlanes);
             System.out.println(animation);
             animation.Animate(dpanel_Main);
-            animation.FinalDraw(dpanel_Main);
+            lastImgae = animation.FinalDraw(dpanel_Main);
         }
         lastCBS = cbs;
     }

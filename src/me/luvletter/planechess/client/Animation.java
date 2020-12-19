@@ -46,15 +46,18 @@ public class Animation {
         this.baseImage = this.drawHelper.getResultImage();
         this.clearBaseImage = Resource.copyImage(this.baseImage);
         // Draw BackPlanes
-        this.backPlanes.forEach(bpid ->
-                DrawHelper.drawPlane(
-                        this.baseImage.getGraphics(),
-                        PositionList.all.get(this.lastStatus.getPlanePosition().get(bpid)).Point,
-                        Resource.getPlaneImage(bpid / 10),
-                        bpid)
-        );
+        if (this.backPlanes.size() > 0) {
+            var lst = new ArrayList<Integer>(this.backPlanes);
+            var bpid = lst.get(0);
+            DrawHelper.drawPlane(
+                    this.baseImage.getGraphics(),
+                    PositionList.all.get(this.lastStatus.getPlanePosition().get(bpid)).Point,
+                    Resource.getPlaneImage(bpid / 10),
+                    lst);
+        }
         try {
             ImageIO.write(this.baseImage, "png", new File("/Users/luvletter/Desktop/test.png"));
+            ImageIO.write(this.clearBaseImage, "png", new File("/Users/luvletter/Desktop/testClear.png"));
 
         } catch (IOException e) {
             e.printStackTrace();
@@ -150,6 +153,7 @@ public class Animation {
             added_planes.removeAll(stack);
         }
         do {
+            System.out.println(keypoint);
             nextPos = keypoint.size() <= c ? endPos : keypoint.get(c);
             var base_image = Resource.copyImage(this.baseImage);
             // draw start -> keyPos this path
@@ -171,23 +175,28 @@ public class Animation {
             }
             System.out.printf("From:%s To: %s Stack:%s need_add_stack:%s\n", startPos, nextPos, stack, added_planes);
 
-            int start_index = PositionList.safeIndexOfCircleBoard(startPos, this.movement.planeID / 10);
-            // the start point is the runway
-            // fix index
-            // change start_point to the one in front of runway
-            // index -> in the circle
-            int end_index = PositionList.circleBoard.indexOf(nextPos);
-            Point start_point = PositionList.all.get(startPos).Point;
-
-            for (int i = nextIndex(start_index); i != nextIndex(end_index); i = nextIndex(i)) {
-                Point targetPoint = PositionList.all.get(PositionList.circleBoard.get(i)).Point;
+            if (isFlyingPoint(startPos)) { // Handle Flying
+                Point start_point = PositionList.all.get(startPos).Point;
+                Point targetPoint = PositionList.all.get(endPos).Point;
                 endImg = smallAnimation(base_image, plane_img, stack, start_point, targetPoint, dpanel);
-                start_point = targetPoint;
+            } else {
+                int start_index = PositionList.safeIndexOfCircleBoard(startPos, this.movement.planeID / 10);
+                // the start point is the runway
+                // fix index
+                // change start_point to the one in front of runway
+                // index -> in the circle
+                int end_index = PositionList.circleBoard.indexOf(nextPos);
+                Point start_point = PositionList.all.get(startPos).Point;
+
+                for (int i = nextIndex(start_index); i != nextIndex(end_index); i = nextIndex(i)) {
+                    Point targetPoint = PositionList.all.get(PositionList.circleBoard.get(i)).Point;
+                    endImg = smallAnimation(base_image, plane_img, stack, start_point, targetPoint, dpanel);
+                    start_point = targetPoint;
+                }
             }
 
             Map<Integer, Point> bp_end_points = new HashMap<>();
 
-            // TODO: back logic here
             var iterator = backplanes.iterator();
             while (iterator.hasNext()) {
                 int backPlaneID = iterator.next();
@@ -195,10 +204,12 @@ public class Animation {
                     bp_end_points.put(backPlaneID, DrawHelper.HangerPoints.get(backPlaneID));
                     iterator.remove();
                 }
+                if (isFlyingPoint(startPos) && this.lastStatus.getPlanePosition().get(backPlaneID).equals(getFlyingBackPos(startPos))) {
+                    bp_end_points.put(backPlaneID, DrawHelper.HangerPoints.get(backPlaneID));
+                    iterator.remove();
+                }
             }
 
-            System.out.println(bp_end_points);
-            System.out.println(backplanes);
             if (bp_end_points.size() > 0) {
                 smallAnimation(endImg, bp_end_points, PositionList.all.get(nextPos).Point, dpanel);
                 var newBaseImage = Resource.copyImage(this.clearBaseImage);
@@ -224,6 +235,25 @@ public class Animation {
             if (nextPos == this.movement.endPos)
                 break;
         } while (true);
+    }
+
+    /**
+     * check whether given point is the Flying Point
+     */
+    private boolean isFlyingPoint(int start_pos) {
+        return start_pos % 10 == 5;
+        // Flying Points:
+        // 105, 205, 305, 405
+    }
+
+    private int getFlyingBackPos(int start_pos) {
+        return switch (start_pos / 100) {
+            case 1 -> 316;
+            case 2 -> 216;
+            case 3 -> 116;
+            case 4 -> 416;
+            default -> 0;
+        };
     }
 
     private static HashSet<Integer> getStackedPlanes(List<PlaneStack> planeStacks, int planeID) {

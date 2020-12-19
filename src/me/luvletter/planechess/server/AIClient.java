@@ -13,12 +13,7 @@ public class AIClient extends Client {
     }
 
     @Override
-    public void declareWin(int wonPlayer) {
-
-    }
-
-    @Override
-    public void UpdateClientChessBoard(ChessBoardStatus cbs, Movement movement, HashSet<Integer> backPlanes, boolean isSkippped, boolean isInitialize){
+    public void UpdateClientChessBoard(ChessBoardStatus cbs, Movement movement, HashSet<Integer> backPlanes, boolean isSkippped, boolean isInitialize) {
 
     }
 

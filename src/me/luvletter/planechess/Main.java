@@ -36,10 +36,12 @@ public class Main {
         var tmp_player_list = new ArrayList<Integer>();
         tmp_player_list.add(1);
         tmp_player_list.add(2);
+        tmp_player_list.add(3);
+        tmp_player_list.add(4);
 
         // create a new game
 
-        var game = new Game(2, tmp_player_list);
+        var game = new Game(4, tmp_player_list);
 
         var client = new LocalClient(1);
         game.addClient(client);
@@ -60,16 +62,6 @@ public class Main {
             }
         }, 1500);
 
-        new Timer().schedule(new TimerTask() {
-            @Override
-            public void run() {
-                //          var cb = internalServer.getChessboardStatus();
-                //          cb.getPlanePosition().remove(33);
-                //          cb.getPlanePosition().put(33,303);
-                //          internalServer.UpdateClientChessBoard(cb);
-                // TODO: use forceMove to debug
-            }
-        }, 4500);
         String str;
         var input = new Scanner(System.in);
 
