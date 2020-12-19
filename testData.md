@@ -54,3 +54,25 @@ forceMoveTo 32 316
 forceMove 31 1 true
 
 forceMove 11 4 true
+
+## 吃子动画4
+
+forceMoveTo 11 103
+
+forceMoveTo 12 104
+
+forceMoveTo 13 105
+
+forceMoveTo 31 315
+
+forceMoveTo 32 316
+
+forceMove 31 1 true
+
+forceMoveTo 41 108
+
+forceMoveTo 42 411
+
+forceMove 42 1 true
+
+forceMove 11 4 true

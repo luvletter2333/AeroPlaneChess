@@ -18,8 +18,8 @@ public class Animation {
     private final Movement movement;
     private final HashSet<Integer> backPlanes;
     private final DrawHelper drawHelper;
-    private BufferedImage baseImage;
-    private BufferedImage clearBaseImage; // without backplanes
+    private BufferedImage baseImage;        // base image should contain planes which will be sent back, redrawn in Animate
+    //  private BufferedImage clearBaseImage; // without backplanes
     private BufferedImage finalImage;
     private final ChessBoardStatus lastStatus;
 
@@ -44,20 +44,8 @@ public class Animation {
             this.drawHelper.Draw(lst, this.lastStatus.getPlanePosition().get(lst.get(0)));
         }
         this.baseImage = this.drawHelper.getResultImage();
-        this.clearBaseImage = Resource.copyImage(this.baseImage);
-        // Draw BackPlanes
-        if (this.backPlanes.size() > 0) {
-            var lst = new ArrayList<Integer>(this.backPlanes);
-            var bpid = lst.get(0);
-            DrawHelper.drawPlane(
-                    this.baseImage.getGraphics(),
-                    PositionList.all.get(this.lastStatus.getPlanePosition().get(bpid)).Point,
-                    Resource.getPlaneImage(bpid / 10),
-                    lst);
-        }
         try {
             ImageIO.write(this.baseImage, "png", new File("/Users/luvletter/Desktop/test.png"));
-            ImageIO.write(this.clearBaseImage, "png", new File("/Users/luvletter/Desktop/testClear.png"));
 
         } catch (IOException e) {
             e.printStackTrace();
@@ -141,8 +129,8 @@ public class Animation {
         HashSet<Integer> cur_stack = getStackedPlanes(this.status.getStacks(), this.movement.planeID);
         boolean stack_add_plane = false;
         HashSet<Integer> added_planes = new HashSet<>(4);
-        BufferedImage endImg = null;
         HashSet<Integer> backplanes = new HashSet<>(this.backPlanes);
+        HashSet<Integer> hasBackedPlanes = new HashSet<>(4);
         if (stack == null) {
             stack = new HashSet<>();
             stack.add(this.movement.planeID);
@@ -156,16 +144,40 @@ public class Animation {
             System.out.println(keypoint);
             nextPos = keypoint.size() <= c ? endPos : keypoint.get(c);
             var base_image = Resource.copyImage(this.baseImage);
-            // draw start -> keyPos this path
+            if (backplanes.size() > 0) {
+                var lst = new ArrayList<Integer>(backplanes);
+                System.out.println(lst);
+                for (PlaneStack pStack : this.lastStatus.getStacks()) {
+                    var splist = new ArrayList<>(pStack.getStacked_planes());
+                    if (backplanes.contains(splist.get(0))) {
+                        DrawHelper.drawPlane(base_image.getGraphics(),
+                                PositionList.all.get(this.lastStatus.getPlanePosition().get(splist.get(0))).Point,
+                                Resource.getPlaneImage(splist.get(0) / 10),
+                                splist
+                        );
+                        lst.removeAll(splist);
+                    }
+                } // Draw planes should be sent back in stack
+                backplanes.forEach(bp -> DrawHelper.drawPlane(
+                        base_image.getGraphics(),
+                        PositionList.all.get(this.lastStatus.getPlanePosition().get(bp)).Point,
+                        Resource.getPlaneImage(bp / 10), bp));
+            }
+            this.backPlanes.stream().filter(hasBackedPlanes::contains)
+                    .forEach(
+                            bp -> DrawHelper.drawPlane(base_image.getGraphics(),
+                                    DrawHelper.HangerPoints.get(bp),
+                                    Resource.getPlaneImage(bp / 10), bp)
+                    );  // 绘制已经滚会仓库的飞机
             if (stack_add_plane) {
                 var iterator = added_planes.iterator();
                 while (iterator.hasNext()) {
                     var added_plane = iterator.next();
-                    if (this.lastStatus.getPlanePosition().get(added_plane) == startPos) {
+                    if (this.lastStatus.getPlanePosition().get(added_plane) == startPos) { //在startPos形成stack，从待stack列表中移除
                         stack.add(added_plane);
                         // added_planes.remove(added_plane);
                         iterator.remove();
-                    } else {
+                    } else { // 尚未需要形成stack,直接绘制
                         DrawHelper.drawPlane(base_image.getGraphics(),
                                 PositionList.all.get(this.lastStatus.getPlanePosition().get(added_plane)).Point,
                                 plane_img,
@@ -175,10 +187,11 @@ public class Animation {
             }
             System.out.printf("From:%s To: %s Stack:%s need_add_stack:%s\n", startPos, nextPos, stack, added_planes);
 
+            // draw start -> keyPos this path
             if (isFlyingPoint(startPos)) { // Handle Flying
                 Point start_point = PositionList.all.get(startPos).Point;
                 Point targetPoint = PositionList.all.get(endPos).Point;
-                endImg = smallAnimation(base_image, plane_img, stack, start_point, targetPoint, dpanel);
+                smallAnimation(base_image, plane_img, stack, start_point, targetPoint, dpanel);
             } else {
                 int start_index = PositionList.safeIndexOfCircleBoard(startPos, this.movement.planeID / 10);
                 // the start point is the runway
@@ -190,44 +203,56 @@ public class Animation {
 
                 for (int i = nextIndex(start_index); i != nextIndex(end_index); i = nextIndex(i)) {
                     Point targetPoint = PositionList.all.get(PositionList.circleBoard.get(i)).Point;
-                    endImg = smallAnimation(base_image, plane_img, stack, start_point, targetPoint, dpanel);
+                    smallAnimation(base_image, plane_img, stack, start_point, targetPoint, dpanel);
                     start_point = targetPoint;
                 }
             }
 
-            Map<Integer, Point> bp_end_points = new HashMap<>();
+            Map<Integer, AnimationMovement> bp_end_points = new HashMap<>(); // back planes end points in this loop
 
             var iterator = backplanes.iterator();
             while (iterator.hasNext()) {
                 int backPlaneID = iterator.next();
-                if (this.lastStatus.getPlanePosition().get(backPlaneID).equals(nextPos)) {
-                    bp_end_points.put(backPlaneID, DrawHelper.HangerPoints.get(backPlaneID));
+                if (this.lastStatus.getPlanePosition().get(backPlaneID).equals(nextPos)) { // 之前的位置==当前移动棋子的位置，出发backPlane
+                    bp_end_points.put(backPlaneID,
+                            new AnimationMovement(PositionList.all.get(this.lastStatus.getPlanePosition().get(backPlaneID)).Point,
+                                    DrawHelper.HangerPoints.get(backPlaneID)));
                     iterator.remove();
                 }
-                if (isFlyingPoint(startPos) && this.lastStatus.getPlanePosition().get(backPlaneID).equals(getFlyingBackPos(startPos))) {
-                    bp_end_points.put(backPlaneID, DrawHelper.HangerPoints.get(backPlaneID));
+                if (isFlyingPoint(startPos)
+                        && this.lastStatus.getPlanePosition().get(backPlaneID).equals(getFlyingBackPos(startPos))) {
+                    //  中途劫机
+                    bp_end_points.put(backPlaneID,
+                            new AnimationMovement(PositionList.all.get(this.lastStatus.getPlanePosition().get(backPlaneID)).Point,
+                                    DrawHelper.HangerPoints.get(backPlaneID)));
                     iterator.remove();
                 }
             }
 
             if (bp_end_points.size() > 0) {
-                smallAnimation(endImg, bp_end_points, PositionList.all.get(nextPos).Point, dpanel);
-                var newBaseImage = Resource.copyImage(this.clearBaseImage);
-                bp_end_points.keySet().forEach(bpid ->
-                        DrawHelper.drawPlane(
-                                newBaseImage.getGraphics(),
-                                bp_end_points.get(bpid),
-                                Resource.getPlaneImage(bpid / 10),
-                                bpid)
-                ); // has been moved
+                // Redraw from clearBaseImage
+                var clearBackImage = Resource.copyImage(this.baseImage);
+
+                DrawHelper.drawPlane(clearBackImage.getGraphics(), PositionList.all.get(nextPos).Point, plane_img, new ArrayList<>(stack));
+                this.backPlanes.stream().filter(hasBackedPlanes::contains)
+                        .forEach(
+                                bp -> DrawHelper.drawPlane(clearBackImage.getGraphics(),
+                                        DrawHelper.HangerPoints.get(bp),
+                                        Resource.getPlaneImage(bp / 10), bp)
+                        ); // 绘制已经滚会仓库的飞机
+
+                var lst = new ArrayList<Integer>(backplanes);
                 backplanes.forEach(bpid ->
                         DrawHelper.drawPlane(
-                                newBaseImage.getGraphics(),
+                                clearBackImage.getGraphics(),
                                 PositionList.all.get(this.lastStatus.getPlanePosition().get(bpid)).Point,
                                 Resource.getPlaneImage(bpid / 10),
                                 bpid)
                 ); // has not been removed
-                this.baseImage = Resource.copyImage(newBaseImage);
+                dpanel.Draw(clearBackImage);
+
+                smallAnimation(clearBackImage, bp_end_points, dpanel);
+                hasBackedPlanes.addAll(bp_end_points.keySet());
             }
 
             startPos = nextPos;
@@ -235,6 +260,16 @@ public class Animation {
             if (nextPos == this.movement.endPos)
                 break;
         } while (true);
+    }
+
+    private class AnimationMovement {
+        public final Point startPoint;
+        public final Point endPoint;
+
+        public AnimationMovement(Point startPoint, Point endPoint) {
+            this.startPoint = startPoint;
+            this.endPoint = endPoint;
+        }
     }
 
     /**
@@ -296,25 +331,25 @@ public class Animation {
         return endImg;
     }
 
-    private static BufferedImage smallAnimation(BufferedImage back, Map<Integer, Point> planes, Point start_point, Drawable_JPanel dpanel) {
+    private static BufferedImage smallAnimation(BufferedImage back, Map<Integer, AnimationMovement> planes, Drawable_JPanel dpanel) {
         final double STEP = 50;
         final int SLEEP_TIME = 10;
         for (int i = 1; i <= STEP; i++) {
             final BufferedImage animate_img = Resource.copyImage(back);
             Graphics g = animate_img.getGraphics();
             for (int pid : planes.keySet()) {
-                Point point = planes.get(pid);
+                AnimationMovement animationMovement = planes.get(pid);
                 DrawHelper.drawPlane(g,
-                        new Point(start_point.X + (point.X - start_point.X) * (i / STEP),
-                                start_point.Y + (point.Y - start_point.Y) * (i / STEP)),
+                        new Point(animationMovement.startPoint.X + (animationMovement.endPoint.X - animationMovement.startPoint.X) * (i / STEP),
+                                animationMovement.startPoint.Y + (animationMovement.endPoint.Y - animationMovement.startPoint.Y) * (i / STEP)),
                         Resource.getPlaneImage(pid / 10), pid);
             }
             dpanel.Draw(animate_img);
             Utility.sleep(SLEEP_TIME);
         }
         final BufferedImage endImg = Resource.copyImage(back);
-        planes.forEach((pid, point) -> {
-            DrawHelper.drawPlane(endImg.getGraphics(), point, Resource.getPlaneImage(pid / 10), pid);
+        planes.forEach((pid, animationMovement) -> {
+            DrawHelper.drawPlane(endImg.getGraphics(), animationMovement.endPoint, Resource.getPlaneImage(pid / 10), pid);
         });
         dpanel.Draw(endImg);
         return endImg;

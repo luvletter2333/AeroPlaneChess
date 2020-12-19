@@ -18,8 +18,8 @@ public class Game {
      * Key -> plane ID
      * Value -> Position ID, such as 102 302
      */
-    private final HashMap<Integer, Integer> planePosition;
-    private final ArrayList<PlaneStack> planeStacks;
+    private HashMap<Integer, Integer> planePosition;
+    private ArrayList<PlaneStack> planeStacks;
 
     // Dice related:
     private int dice_player_id;
@@ -533,6 +533,19 @@ public class Game {
         if (!Main.DEBUG_MODE)
             return;
         this.skip(player_id);
+    }
+
+    public void testReStart() {
+        this.planePosition = new HashMap<>();
+        for (int id : player_ids) {
+            planePosition.put(id * 10 + 1, id * 100 + 99);
+            planePosition.put(id * 10 + 2, id * 100 + 99);
+            planePosition.put(id * 10 + 3, id * 100 + 99);
+            planePosition.put(id * 10 + 4, id * 100 + 99);
+        }
+        // initializePlanePosition
+        this.planeStacks = new ArrayList<>();
+        announceStart();
     }
 
 }

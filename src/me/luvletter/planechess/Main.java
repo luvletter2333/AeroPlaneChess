@@ -78,6 +78,7 @@ public class Main {
                     case "status" -> game.testStatus();
                     case "skip" -> game.testSkip(Int(cmds[1]));
                     case "nextloop" -> game.testNextLoop();
+                    case "restart" -> game.testReStart();
                 }
                 System.out.println("[Server] run debug command: " + str);
             } catch (Exception e) {
