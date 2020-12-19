@@ -102,5 +102,10 @@ forceMove 22 1 true
 forceMoveTo 11 100 true
 restart
 
+## Skip All
 
+skip 1
+skip 2
+skip 3
+skip 4
 

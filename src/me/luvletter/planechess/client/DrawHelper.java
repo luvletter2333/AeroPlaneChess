@@ -43,6 +43,17 @@ public class DrawHelper {
         }
     }
 
+    public static void drawPlaneWithAlpha(Graphics2D g, Point phyPoint, BufferedImage plane_img, float opacity) {
+        g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, opacity));
+        g.drawImage(plane_img, phyPoint.X - 10, phyPoint.Y - 10, 20, 20, null);
+        // scale 30x30 -> 20x20
+        if (Main.DEBUG_MODE) {
+            // under debug mode, draw plane_ID;
+            g.drawString("PRV", phyPoint.X + 10, phyPoint.Y + 10);
+        }
+
+    }
+
     private final BufferedImage ResultImage;
     private final Graphics g;
 

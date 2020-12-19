@@ -8,11 +8,12 @@ import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 
 import me.luvletter.planechess.client.*;
+import me.luvletter.planechess.client.Point;
+import me.luvletter.planechess.client.previewing.PreviewAction;
+import me.luvletter.planechess.client.previewing.PreviewType;
+import me.luvletter.planechess.client.previewing.TakeOffPreviewAction;
 import me.luvletter.planechess.event.EventManager;
-import me.luvletter.planechess.event.clientevents.DiceEvent;
-import me.luvletter.planechess.event.clientevents.DiceAnimationEvent;
-import me.luvletter.planechess.event.clientevents.ShowOtherDiceEvent;
-import me.luvletter.planechess.event.clientevents.UpdateChessboardEvent;
+import me.luvletter.planechess.event.clientevents.*;
 import me.luvletter.planechess.server.ChessBoardStatus;
 import me.luvletter.planechess.server.DiceType;
 import me.luvletter.planechess.server.LocalClient;
@@ -50,22 +51,22 @@ public class formMain {
     private volatile int dice_second_result = 0;    // only under fly mode
     private volatile int dice_count = 2;
     private volatile DiceType dice_type;
+    private volatile boolean isMyDice = false;
     //private volatile boolean dicing = false;
     //private final Object dicing_lock = new Object(); // Dicing lock
 
     private final Object board_drawing_lock = new Object(); // Main Canvas Drawing Lock
 
     private LocalClient localClient;
+    private final int playerID;
 
     private EventManager eventManager;
     private Thread ui_thread;
 
-    private volatile boolean allow_preview = false;
-    private volatile BufferedImage preview_baseImg;
-
     public formMain(LocalClient localClient, EventManager eventManager) {
         super();
         this.localClient = localClient;
+        this.playerID = this.localClient.player_id;
         this.eventManager = eventManager;
 
         dpanel_Main = new Drawable_JPanel();
@@ -103,7 +104,8 @@ public class formMain {
                 super.mouseClicked(e);
                 var p = ChessBoardClickHelper.getPointfromMouseEvent(e);
                 System.out.println(p);
-                var ps = ChessBoardClickHelper.matchPositionfromPoint(p);
+                eventManager.push(new PreviewEvent(p));
+
                 //   System.out.println(ps);
             }
 
@@ -119,6 +121,7 @@ public class formMain {
                         case showDice -> showDice((DiceEvent) e);
                         case ShowOtherDice -> show_other_Dice_Animation((ShowOtherDiceEvent) e);
                         case UpdateChessboard -> update_chessboard((UpdateChessboardEvent) e);
+                        case Preview -> preview((PreviewEvent) e);
 //                        case DiceAnimation -> dice_Animation((DiceAnimationEvent) e);
                     }
                     sleep(500);
@@ -132,6 +135,7 @@ public class formMain {
 
     // Events
     private void showDice(DiceEvent e) {
+        this.isMyDice = true;
         if (e.diceType == DiceType.Fly) {
             this.dice_type = e.diceType;
             this.dice_count = e.diceCount;
@@ -152,6 +156,7 @@ public class formMain {
     }
 
     private void show_other_Dice_Animation(ShowOtherDiceEvent e) {
+        this.isMyDice = false;
         if (e.diceType == DiceType.Fly) {
 
             this.label_Down.setText("Player " + e.playerID + " is dicing. Round " + 1);
@@ -162,7 +167,7 @@ public class formMain {
             diceAnimate(label_status, dpanel_Dice, getDiceResultinRound(e.diceResult, 2), 2);
 
             // final roll
-            label_Down.setText(String.format("Dice ends. He/She got %d and %d.",
+            label_Down.setText(String.format("Dice ends. Player %d got %d and %d.", e.playerID,
                     getDiceResultinRound(e.diceResult, 1), getDiceResultinRound(e.diceResult, 2)));
         } else {
             // TODO: Battle Mode
@@ -170,8 +175,8 @@ public class formMain {
     }
 
     //private ArrayList<Animation>
-    private ChessBoardStatus lastCBS;
-    private BufferedImage lastImgae;
+    private ChessBoardStatus lastCBS = null;
+    private BufferedImage lastImgae = null;
 
     private void update_chessboard(UpdateChessboardEvent e) {
         if (e.isSkipped) {
@@ -188,13 +193,13 @@ public class formMain {
             });
             dpanel_Main.Draw(drawer.getResultImage());
             // save img for previewing render
-            this.preview_baseImg = drawer.getResultImage();
+            this.lastImgae = drawer.getResultImage();
             System.out.println("first drawing finished!!");
         } else {
             var animation = new Animation(cbs, lastCBS, e.movement, e.backPlanes);
             System.out.println(animation);
-             animation.Animate(dpanel_Main);
-             lastImgae = animation.FinalDraw(dpanel_Main);
+            animation.Animate(dpanel_Main);
+            lastImgae = animation.FinalDraw(dpanel_Main);
         }
         lastCBS = cbs;
     }
@@ -213,6 +218,48 @@ public class formMain {
             label_Down.setText(String.format("Dice ends. You got %d and %d. You can choose a plane to move or take off a plane", this.dice_first_result, this.dice_second_result));
         } else {
             // TODO: Battle Mode
+        }
+    }
+
+
+    private PreviewAction lastPreview = null;
+
+    private void preview(PreviewEvent e) {
+        // TODO: Maybe other click Event?
+        if (lastCBS == null || lastImgae == null)
+            return;
+        if (!this.isMyDice)
+            return;
+        Point phyPoint = e.clickPoint;
+        Position matchPos = ChessBoardClickHelper.matchPositionfromPoint(phyPoint);
+        System.out.println(matchPos);
+        if (matchPos == null) {
+            // TODO : show Talk
+            return;
+        }
+        if (matchPos.ID % 100 == 99) {    // 点击基地
+            if (matchPos.Color.getIntValue() != this.playerID)
+                return; // 点击别人的基地没有意义
+            // try to takeoff
+            if ((this.dice_first_result == 6 || this.dice_second_result == 6)
+                    && this.lastCBS.getPlanePosition().entrySet().stream()
+                    .anyMatch(entry -> entry.getKey() / 10 == this.playerID && entry.getValue() % 100 == 99)) {
+                // clear to take off
+                this.lastPreview = new TakeOffPreviewAction(this.localClient);
+                // Draw Preview Image
+                var previewImg = Resource.copyImage(this.lastImgae);
+                DrawHelper.drawPlaneWithAlpha(previewImg.createGraphics(), PositionList.all.get(this.playerID * 100).Point,
+                        Resource.getPlaneImage(this.playerID), 0.5f);
+                this.dpanel_Main.Draw(previewImg);
+            }
+        }
+        if (matchPos.ID % 100 == 0) {
+            // 点击起飞处
+            if (lastPreview != null)
+                if (lastPreview.previewType == PreviewType.TakeOff) {
+                    lastPreview.apply();
+                    lastPreview = null;
+                }
         }
     }
 

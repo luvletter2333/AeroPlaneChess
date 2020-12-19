@@ -5,5 +5,6 @@ public enum EventType {
     showDice,
     UpdateChessboard,
     DiceAnimation,
-    AnnounceWin
+    AnnounceWin,
+    Preview
 }

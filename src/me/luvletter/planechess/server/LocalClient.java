@@ -21,12 +21,6 @@ public class LocalClient extends Client {
         return clientEventManager;
     }
 
-    /**
-     * For Test Only
-     */
-    public void forceMove(int plane_id, int position, boolean immediate_update) {
-
-    }
 
     @Override
     public void UpdateClientChessBoard(ChessBoardStatus cbs, Movement movement, HashSet<Integer> backPlanes, boolean isSkipped, boolean isInitialize) {
