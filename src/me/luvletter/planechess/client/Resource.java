@@ -18,14 +18,27 @@ public class Resource {
 
     /**
      * planeColor: 1,2,3,4 => Red, Yellow, Blue, Green
+     *
      * @param planeColor for debug only
-     * */
+     */
     public static BufferedImage getPlaneImage(int planeColor) {
         return switch (planeColor) {
             case 1 -> Resource.getResource(ResourceType.Red_Plane);
             case 2 -> Resource.getResource(ResourceType.Yellow_Plane);
             case 3 -> Resource.getResource(ResourceType.Blue_Plane);
             case 4 -> Resource.getResource(ResourceType.Green_Plane);
+            default -> null;
+        };
+    }
+
+    public static BufferedImage getPlaneImage(int planeColor, int planePos) {
+        if (planePos % 100 != 98)
+            return getPlaneImage(planeColor);
+        return switch (planeColor) {
+            case 1 -> Resource.getResource(ResourceType.Win_Red_Plane);
+            case 2 -> Resource.getResource(ResourceType.Win_Yellow_Plane);
+            case 3 -> Resource.getResource(ResourceType.Win_Blue_Plane);
+            case 4 -> Resource.getResource(ResourceType.Win_Green_Plane);
             default -> null;
         };
     }
@@ -59,6 +72,10 @@ public class Resource {
             case Yellow_Plane -> "res/yellow.png";
             case Blue_Plane -> "res/blue.png";
             case Green_Plane -> "res/green.png";
+            case Win_Red_Plane -> "res/red_win.png";
+            case Win_Yellow_Plane -> "res/yellow_win.png";
+            case Win_Blue_Plane -> "res/blue_win.png";
+            case Win_Green_Plane -> "res/green_win.png";
             case Dice_Unknown -> "res/dice/dice.png";
             case Dice_Rolling1 -> "res/dice/dice_roll1.png";
             case Dice_Rolling2 -> "res/dice/dice_roll2.png";
