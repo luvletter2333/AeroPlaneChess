@@ -3,6 +3,8 @@ package me.luvletter.planechess.client;
 import javax.swing.*;
 import java.awt.image.BufferedImage;
 
+import static me.luvletter.planechess.util.Utility.*;
+
 public class DiceAnimationHelper {
     public static BufferedImage getAnimationImage(int _count) {
         return switch (_count) {
@@ -30,26 +32,15 @@ public class DiceAnimationHelper {
         };
     }
 
-    public static void diceAnimate(JLabel label_status, Drawable_JPanel dpanel_Dice, int dice_result, int dice_round){
-        try {
-            Thread.sleep(150);
-            for(int i=1;i<9;i++){ // Animation loop
-                label_status.setText(convertToMultiline("Round " + dice_round + ".\nYou are dicing" + ".".repeat(i % 3 + 2)));
-                dpanel_Dice.Draw(getAnimationImage(i));
-                //Thread.sleep(300);
-                //TODO: Debug Only!
-            }
-            //Thread.sleep(1000);
-        } catch (InterruptedException interruptedException) {
-            interruptedException.printStackTrace();
+    public static void diceAnimate(JTextArea label_status, Drawable_JPanel dpanel_Dice, int dice_result, int dice_round) {
+
+        sleep(150);
+        for (int i = 1; i < 9; i++) { // Animation loop
+            dpanel_Dice.Draw(getAnimationImage(i));
+            sleep(300);
         }
         // the final loop, show result
         dpanel_Dice.Draw(getResultImage(dice_result));
-        label_status.setText(convertToMultiline("Round " + dice_round + " ends.\nYou get " + dice_result + "!"));
-    }
-
-    private static String convertToMultiline(String orig) {
-        return "<html>" + orig.replaceAll("\n", "<br>");
     }
 
 }

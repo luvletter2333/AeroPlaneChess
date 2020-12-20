@@ -5,7 +5,6 @@ import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
-import java.util.ArrayList;
 
 import me.luvletter.planechess.client.*;
 import me.luvletter.planechess.client.Point;
@@ -18,6 +17,7 @@ import me.luvletter.planechess.event.clientevents.*;
 import me.luvletter.planechess.server.*;
 
 import static me.luvletter.planechess.client.DiceAnimationHelper.*;
+import static me.luvletter.planechess.util.Utility.*;
 
 public class formMain {
     public JPanel panel_Main;
@@ -25,20 +25,22 @@ public class formMain {
     private JLabel label_Down;
     private JPanel panel_Control;
     private JPanel panel_Center;
-    private JPanel panel_dice;
-    private JButton btn_dice;
+    private JPanel panel_dice1;
     private JPanel panel_canvas_container_main;
-    private JPanel panel_canvas_container_dice;
+    private JPanel panel_canvas_container_dice1;
     private JPanel panel_talk;
     private JPanel panel_talk_bottom;
     private JTextField txt_talk;
     private JTextField textField1;
     private JButton btn_talk_send;
     private JPanel panel_status;
-    private JLabel label_status;
+    private JTextArea label_status;
+    private JPanel panel_dice2;
+    private JPanel panel_canvas_container_dice2;
 
     public Drawable_JPanel dpanel_Main;
-    public Drawable_JPanel dpanel_Dice;
+    public Drawable_JPanel dpanel_Dice1;
+    public Drawable_JPanel dpanel_Dice2;
 
     // -1 -> disable dicing
     // 0 -> allow dicing, not started yet
@@ -67,34 +69,26 @@ public class formMain {
         this.playerID = this.localClient.player_id;
         this.eventManager = eventManager;
 
+        this.label_status.setLineWrap(true);
+        this.label_status.setEditable(false);
+        this.label_status.setBackground(this.panel_Center.getBackground());
+
         dpanel_Main = new Drawable_JPanel();
-        dpanel_Dice = new Drawable_JPanel();
+        dpanel_Dice1 = new Drawable_JPanel();
+        dpanel_Dice2 = new Drawable_JPanel();
 
         register_Canvas(dpanel_Main, panel_canvas_container_main);
-        register_Canvas(dpanel_Dice, panel_canvas_container_dice);
+        register_Canvas(dpanel_Dice1, panel_canvas_container_dice1);
+        register_Canvas(dpanel_Dice2, panel_canvas_container_dice2);
 
         dpanel_Main.Draw(Resource.getResource(ResourceType.ChessBoard));
-        dpanel_Dice.Draw(Resource.getResource(ResourceType.Dice_Unknown));
+        dpanel_Dice1.Draw(Resource.getResource(ResourceType.Dice_Unknown));
+        dpanel_Dice2.Draw(Resource.getResource(ResourceType.Dice_Unknown));
 
         //game_server.addCallback_Allow_Dice(this::cb_allow_Dice);
         //game_server.addCallback_Show_Other_Dice(this::cb_show_other_Dice_Animation);
         //game_server.addCallback_update_chessboard(this::cb_update_chessboard);
 
-        //    btn_dice.setEnabled(false);
-        btn_dice.addActionListener(actionEvent -> {
-            System.out.println("disable button, show directly");
-            return;
-
-            // TODO: Edit me
-//            int result =0; // this.localClient.rolling_Dice(1);
-//            if(result == 0) {
-//                System.out.println("last player don't dice and move");
-//                return;
-//            }
-//            int first = result / 10;
-//            int second = result % 10;
-//            this.eventManager.push(new DiceAnimationEvent(first, second));
-        });
 
         dpanel_Main.addMouseListener(new MouseAdapter() {
             @Override
@@ -135,42 +129,30 @@ public class formMain {
     // Events
     private void showDice(DiceEvent e) {
         this.isMyDice = true;
-        if (e.diceType == DiceType.Fly) {
-            this.dice_type = e.diceType;
-            this.dice_count = e.diceCount;
-            // under Fly mode, dice Count is always 2
-            this.dice_first_result = e.diceResult / 10;
-            this.dice_second_result = e.diceResult % 10;
 
-            dice_Animation(e);
-        } else {
-            // Battle Mode
-            // TODO: Handle Battle Mode Dice
-        }
-        //  dicing_status = 0;
-//        this.first_dice_result = 0;
-//        this.second_dice_result = 0;
-//        this.dice_round = 1;
-//        this.btn_dice.setEnabled(true);
+        this.dice_type = e.diceType;
+        this.dice_count = e.diceCount;
+        // under Fly mode, dice Count is always 2
+        this.dice_first_result = e.diceResult / 10;
+        this.dice_second_result = e.diceResult % 10;
+
+        dice_Animation(e);
     }
 
     private void show_other_Dice_Animation(ShowOtherDiceEvent e) {
         this.isMyDice = false;
-        if (e.diceType == DiceType.Fly) {
 
-            this.label_Down.setText("Player " + e.playerID + " is dicing. Round " + 1);
-            diceAnimate(label_status, dpanel_Dice, getDiceResultinRound(e.diceResult, 1), 1);
-            sleep(3000);
+        this.label_status.setText(PlayerColor.getFriendString(e.playerID) + " is dicing.");
+        setJPanelTitle(this.panel_dice1, PlayerColor.getFriendString(e.playerID) + "'s First Dice");
+        setJPanelTitle(this.panel_dice2, PlayerColor.getFriendString(e.playerID) + "'s Second Dice");
 
-            this.label_Down.setText("Player " + e.playerID + " is dicing. Round " + 2);
-            diceAnimate(label_status, dpanel_Dice, getDiceResultinRound(e.diceResult, 2), 2);
+        diceAnimate(label_status, dpanel_Dice1, getDiceResultinRound(e.diceResult, 1), 1);
+        sleep(1000);
+        diceAnimate(label_status, dpanel_Dice2, getDiceResultinRound(e.diceResult, 2), 2);
 
-            // final roll
-            label_Down.setText(String.format("Dice ends. Player %d got %d and %d.", e.playerID,
-                    getDiceResultinRound(e.diceResult, 1), getDiceResultinRound(e.diceResult, 2)));
-        } else {
-            // TODO: Battle Mode
-        }
+        // final roll
+        this.label_status.setText(String.format("Dice ends. %s got %d and %d.", PlayerColor.getFriendString(e.playerID),
+                getDiceResultinRound(e.diceResult, 1), getDiceResultinRound(e.diceResult, 2)));
     }
 
     //private ArrayList<Animation>
@@ -203,23 +185,19 @@ public class formMain {
         lastCBS = cbs;
     }
 
-    // Show dicing animation
+    // Show my dicing animation
     private void dice_Animation(DiceEvent e) {
-        if (this.dice_type == DiceType.Fly) {
-            this.label_Down.setText("You are dicing. Round 1! Good luck~");
-            diceAnimate(label_status, dpanel_Dice, getDiceResultinRound(e.diceResult, 1), 1);
-            // sleep(3000);
-            // TODO: Debug Only!
+        this.label_status.setText( "You are dicing.\nGood luck~");
+        setJPanelTitle(this.panel_dice1, "Your First Dice");
+        setJPanelTitle(this.panel_dice2, "Your Second Dice");
 
-            this.label_Down.setText("You are dicing. Round 2! Good luck~");
-            diceAnimate(label_status, dpanel_Dice, getDiceResultinRound(e.diceResult, 2), 2);
+        diceAnimate(label_status, dpanel_Dice1, getDiceResultinRound(e.diceResult, 1), 1);
+        sleep(1000);
+        diceAnimate(label_status, dpanel_Dice2, getDiceResultinRound(e.diceResult, 2), 2);
 
-            label_Down.setText(String.format("Dice ends. You got %d and %d. You can choose a plane to move or take off a plane", this.dice_first_result, this.dice_second_result));
-        } else {
-            // TODO: Battle Mode
-        }
+
+        this.label_status.setText(String.format("Dice ends.\nYou got %d and %d.\nYou can choose a plane to move or take off a plane", this.dice_first_result, this.dice_second_result));
     }
-
 
     private PreviewAction lastPreview = null;
 
@@ -278,11 +256,4 @@ public class formMain {
         father_container.add(dPanel, BorderLayout.CENTER);
     }
 
-    private void sleep(long ms) {
-        try {
-            Thread.sleep(ms);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-    }
 }
