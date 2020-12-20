@@ -77,6 +77,7 @@ forceMove 42 1 true
 
 forceMove 11 4 true
 restart
+
 ## 移动动画
 
 forceMoveTo 44 413
@@ -93,7 +94,7 @@ forceMoveTo 41 303
 
 forceMove 41 1 true
 
-## Move Animation
+## 终点移动动画
 
 forceMoveTo 22 217
 forceMoveTo 21 218

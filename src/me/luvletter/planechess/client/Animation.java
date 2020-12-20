@@ -12,6 +12,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class Animation {
     private final ChessBoardStatus status;
@@ -88,19 +89,28 @@ public class Animation {
             // then final move to the dest
             var start_point = PositionList.all.get(middle_pos).Point;
             var end_point = PositionList.all.get(this.movement.endPos).Point;
-            smallAnimation(baseImage, plane_img, stack, start_point, end_point, dpanel);
+            smallAnimation(this.baseImage, plane_img, stack, start_point, end_point, dpanel);
         } else {
             // startPos is already in the final approach
             // 最终跑道上的动画
             if (this.movement.endPos % 100 == 19) {
-                // 原先stack已经被打散
                 // FIX: If go to 19, in currentStatus, there is no stack containing plane_ID
-                smallAnimation(baseImage, plane_img, lastStack,
+                // 原先stack已经被打散
+                smallAnimation(this.baseImage, plane_img, lastStack,
                         PositionList.all.get(this.movement.startPos).Point,
                         PositionList.all.get(this.movement.endPos).Point,
                         dpanel);
+                // 最终图像由FinalDraw保证
             } else { // 不是直接到19
-                smallAnimation(baseImage, plane_img, stack,
+                // 如果endPos处有飞机
+                var img = Resource.copyImage(this.baseImage);
+                if (stack.size() > lastStack.size()) {
+                    var endPlanes = stack.stream().filter(c -> !lastStack.contains(c)).collect(Collectors.toList());
+                    // endPos处原有的飞机
+                    DrawHelper.drawPlane(img.getGraphics(), PositionList.all.get(this.lastStatus.getPlanePosition().get(endPlanes.get(0))).Point,
+                            Resource.getPlaneImage(this.movement.planeID / 10), endPlanes);
+                }
+                smallAnimation(img, plane_img, lastStack,
                         PositionList.all.get(this.movement.startPos).Point,
                         PositionList.all.get(this.movement.endPos).Point,
                         dpanel);
