@@ -10,6 +10,7 @@ import me.luvletter.planechess.event.gameevents.*;
 import java.lang.reflect.Array;
 import java.security.SecureRandom;
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static me.luvletter.planechess.util.Utility.*;
@@ -31,7 +32,7 @@ public class Game {
     private int dice_second_result;
     private boolean dice_moved = false;
     private final Random dice_random;
-    private final Queue<Integer> cheatDice;
+    private Queue<Integer> cheatDice;
 
     private boolean has_won = false;
     private int win_player_id = 0;
@@ -71,7 +72,7 @@ public class Game {
                 while (true) {
                     try {
                         Event e = gameEventManager.get();
-                        System.out.println("[Server Event]" + e);
+                        System.out.println("[Game Event]" + e);
                         switch (e.getType()) {
                             case GameMove -> {
                                 MoveEvent me = (MoveEvent) e;
@@ -216,21 +217,54 @@ public class Game {
             return false;
         int playerID = planeID / 10;
         int destPos = calculateDestPos(playerID, this.planePosition.get(planeID), step);
-        // get stack at destPos
+        // get stack at destPos,被battle的stack
         var stack2 = new ArrayList<Integer>();
         for (int i : this.planePosition.keySet()) {
             if (i / 10 == playerID) continue;
             if (this.planePosition.get(i) == destPos)
                 stack2.add(i);
         }
-        System.out.println(stack2);
         if (stack2.size() == 0)
             return false;
+        System.out.println("被battle的stack" + stack2);
+        int rep2_pid = stack2.get(0); // 被battle stack的一个代表
         var stack1 = getStackerPlanesOrGenerate(this.planeStacks, planeID);
-        var battle = new Battle(stack1, stack2, this.dice_random);
+        var battle = new Battle(stack1, stack2, destPos, unused -> onceDice());
         int winner_playerID = battle.calculateResult();
+        // Apply Battle Result
+        if (winner_playerID == playerID) {
+            // playerID win this battle
+            applyBattleResult(stack1, battle.remainstack, destPos, stack2);
+        } else {
+            // playerID lose this battle
+            applyBattleResult(stack2, battle.remainstack, destPos, stack1);
+        }
         clients.values().forEach(client -> client.AnnounceBattleResult(getChessboardStatus(), battle));
         return true;
+    }
+
+    private void applyBattleResult(List<Integer> winner_stack,
+                                   List<Integer> winner_remain_stack, int destPos,
+                                   List<Integer> loser_stack) {
+        int winner_rep = winner_remain_stack.get(0);
+        int loser_rep = loser_stack.get(0);
+        // send back loser
+        loser_stack.forEach(loser_pid -> this.planePosition.put(loser_pid, loser_rep / 10 * 100 + 99));
+        // unstack loser
+        this.planeStacks.removeIf(planeStack -> planeStack.hasPlane(loser_rep));
+
+        // 胜方(winner_stack)可能仍然有棋子要回家，计算差集 ( winner_stack > winner_remain_stack)
+        // 在stack1中 但是不再remain stack中
+        var winner_back = winner_stack.stream()
+                .filter(pid -> !winner_remain_stack.contains(pid)).collect(Collectors.toList());
+
+        // 删除现有的planeStack，添加新的
+        this.planeStacks.removeIf(planeStack -> planeStack.hasPlane(winner_rep));
+        if (winner_remain_stack.size() > 1)
+            this.planeStacks.add(new PlaneStack(new HashSet<>(winner_remain_stack)));
+
+        winner_back.forEach(back_pid -> this.planePosition.put(back_pid, back_pid / 10 * 100 + 99));
+        winner_remain_stack.forEach(remain_pid -> this.planePosition.put(remain_pid, destPos));
     }
 
     private boolean canStart() {
@@ -253,8 +287,11 @@ public class Game {
     private int onceDice() {
         if (this.cheatDice.size() == 0)
             return this.dice_random.nextInt(6) + 1;
-        else
-            return this.cheatDice.poll();
+        else {
+            var ret = this.cheatDice.poll();
+            System.out.println("[Game] Dice Cheated: " + ret);
+            return ret;
+        }
     }
 
     /**
@@ -366,6 +403,10 @@ public class Game {
     }
 
 
+    /**
+     * Move Plane(s) at the original Pos of plane_id to destPos
+     * Stack is automatically unstacked if destPos is x19, which means reach final
+     */
     private void movePlane(int plane_id, int destPos) {
         if (this.planeStacks.stream().noneMatch(planeStack -> planeStack.hasPlane(plane_id))) {
             // the plane isn't in any stack, just update position_id
@@ -378,6 +419,7 @@ public class Game {
                     break;
                 }
             }
+            // unstack if win
             var iterator = this.planeStacks.iterator();
             while (iterator.hasNext()) {
                 var planeStack = iterator.next();
@@ -421,17 +463,7 @@ public class Game {
         }
         // un-stack
         if (diedPlanes.size() > 0) {
-            boolean un_stack = false;
-            PlaneStack stack_removed = null;
-            for (PlaneStack planeStack : this.planeStacks) {
-                if (planeStack.hasPlane(diedPlanes.get(0))) {
-                    stack_removed = planeStack;
-                    un_stack = true;
-                    break;
-                }
-            }
-            if (un_stack)
-                this.planeStacks.remove(stack_removed);
+            this.planeStacks.removeIf(planeStack -> planeStack.hasPlane(diedPlanes.get(0)));
         }
         // add them into backPlanes
         this.backPlane.addAll(diedPlanes);
@@ -493,18 +525,16 @@ public class Game {
         return new ChessBoardStatus(this.Player_Count, this.planePosition, this.planeStacks, has_won, win_player_id);
     }
 
-    private void updateClients() {
-        updateClients(false);
-    }
 
-    private void updateClients(boolean isSkipped) {
+    private void updateClients() {
         var cbs = getChessboardStatus();
-        clients.values().forEach(c -> c.UpdateClientChessBoard(cbs, movement, backPlane, isSkipped, false));
+        clients.values().forEach(c -> c.UpdateClientChessBoard(cbs, movement, backPlane, false, false));
+        // TODO: Remove isSkipped
     }
 
     private void nextLoop() {
         int next_player = this.player_ids.get((this.player_ids.indexOf(this.dice_player_id) + 1) % this.Player_Count);
-        System.out.println("[Server] next Player: " + next_player);
+        System.out.println("[Game] next Player: " + next_player);
         int dice_result = rolling_Dice(next_player);
         clients.get(next_player).Dice(DiceType.Fly, 2, dice_result);
         clients.values().stream()
@@ -570,11 +600,16 @@ public class Game {
         }
         // initializePlanePosition
         this.planeStacks = new ArrayList<>();
+        this.cheatDice = new ArrayDeque<>();
         _announceStart();
     }
 
     public void testCheatDice(Queue<Integer> cheatDice) {
         this.cheatDice.addAll(cheatDice);
+    }
+
+    public void testUpdateUI() {
+        this.updateClients();
     }
 
 }

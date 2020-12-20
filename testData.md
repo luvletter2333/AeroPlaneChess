@@ -120,3 +120,38 @@ move 11 1 true
 # Battle Test File
 
 ## Test 1
+
+forceDice 1 1
+forceMoveTo 11 101
+forceMoveTo 21 211
+battle 11 1 true
+
+## Test 2 一坨打一个
+
+cheatDice 1 2 1 6
+
+
+forceMoveTo 11 101
+forceMoveTo 12 211
+forceMove 11 1 true
+forceMoveTo 21 308
+skip 1
+skip 2
+forceDice 1 1
+cheatDice 1 2 1 6
+battle 12 1
+
+## Test 2 一坨打一个
+
+cheatDice 1 2 1 6
+
+
+forceMoveTo 11 101
+forceMoveTo 12 211
+forceMove 11 1 true
+forceMoveTo 21 308
+skip 1
+skip 2
+forceDice 1 1
+cheatDice 2 1
+battle 12 1

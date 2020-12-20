@@ -3,6 +3,7 @@ package me.luvletter.planechess.server;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Set;
 
 public class PlaneStack {
     private final HashSet<Integer> stacked_planes;
@@ -10,6 +11,10 @@ public class PlaneStack {
     public PlaneStack(int plane_id) {
         this.stacked_planes = new HashSet<>(4);
         this.stacked_planes.add(plane_id);
+    }
+
+    public PlaneStack(Set<Integer> planes){
+        this.stacked_planes = new HashSet<>(planes);
     }
 
     private PlaneStack(HashSet<Integer> planes){

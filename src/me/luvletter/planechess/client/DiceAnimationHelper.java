@@ -32,12 +32,13 @@ public class DiceAnimationHelper {
         };
     }
 
-    public static void diceAnimate(JTextArea label_status, Drawable_JPanel dpanel_Dice, int dice_result, int dice_round) {
+    public static void diceAnimate(Drawable_JPanel dpanel_Dice, int dice_result, int dice_round) {
 
         sleep(150);
         for (int i = 1; i < 9; i++) { // Animation loop
             dpanel_Dice.Draw(getAnimationImage(i));
-            sleep(300);
+           // sleep(300);
+            // TODO: Debug
         }
         // the final loop, show result
         dpanel_Dice.Draw(getResultImage(dice_result));

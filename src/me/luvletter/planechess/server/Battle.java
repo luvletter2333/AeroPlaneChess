@@ -3,31 +3,37 @@ package me.luvletter.planechess.server;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+import java.util.function.Function;
 
 public class Battle {
     public final List<Integer> stack1;
     public final List<Integer> stack2;
     public final int planeID1;
     public final int planeID2;
+    public final int destPosition;
     private final List<BattleResult> results;
-    private final Random random;
     public final List<Integer> remainstack;
+    private final Function<Void, Integer> onceDice;
 
     /**
      * stack1是Battle的发起者
      */
-    public Battle(List<Integer> stack1, List<Integer> stack2, Random random) {
+    public Battle(List<Integer> stack1, List<Integer> stack2, int destPosition, Function<Void, Integer> onceDice) {
         this.stack1 = stack1;
         this.stack2 = stack2;
         this.planeID1 = this.stack1.get(0);
         this.planeID2 = this.stack2.get(0);
-        this.random = random;
+        this.onceDice = onceDice;
+        this.destPosition = destPosition;
         this.results = new ArrayList<>();
         this.remainstack = new ArrayList<>();
     }
 
+    /**
+     * 用于服务器在想客户端传递数据时的deepCopy
+     * */
     public Battle(Battle oldObj) {
-        this.stack1 = new ArrayList<>( oldObj.stack1);
+        this.stack1 = new ArrayList<>(oldObj.stack1);
         this.stack2 = new ArrayList<>(oldObj.stack2);
         this.planeID1 = oldObj.planeID1;
         this.planeID2 = oldObj.planeID2;
@@ -35,8 +41,9 @@ public class Battle {
         for (BattleResult battleResult : oldObj.results) {
             this.results.add(new BattleResult(battleResult));
         }
-        this.random = null;
+        this.onceDice = null;
         this.remainstack = new ArrayList<>(oldObj.remainstack);
+        this.destPosition = oldObj.destPosition;
     }
 
     /**
@@ -48,14 +55,10 @@ public class Battle {
         var _stack1 = new ArrayList<>(this.stack1);
         var _stack2 = new ArrayList<>(this.stack2);
 
-        var iterator1 = _stack1.iterator();
-        var iterator2 = _stack2.iterator();
-        while (iterator1.hasNext()) {
-            int plane1 = iterator1.next();
-            if (!iterator2.hasNext())
-                break;
+        while (_stack1.size() > 0 && _stack2.size() > 0) {
+            int plane1 = _stack1.get(0);
             // list2还有飞机
-            int plane2 = iterator2.next();
+            int plane2 = _stack2.get(0);
             int d1;
             int d2;
             do {
@@ -63,26 +66,37 @@ public class Battle {
                 d2 = onceDice();
             } while (d1 == d2);
             results.add(new BattleResult(plane1, plane2, d1, d2));
-            System.out.printf("stack1:%s stack2:%s p1:%d p2:%d d1:%d d2:%d\n", _stack1, _stack2, plane1, plane2, d1, d2);
+            System.out.printf("[Battle Result] stack1:%s stack2:%s p1:%d p2:%d d1:%d d2:%d From calculateResult\n", _stack1, _stack2, plane1, plane2, d1, d2);
             System.out.println(this.results);
-            if (d1 < d2)
-                iterator1.remove();
-            else
-                iterator2.remove();
+            if (d1 > d2) {
+                _stack2.remove(Integer.valueOf(plane2));
+            } else {
+                _stack1.remove(Integer.valueOf(plane1));
+            }
         }
         this.remainstack.addAll(_stack1);
         this.remainstack.addAll(_stack2);
-        // _stack1 _stack2一定又一个空的
+        // _stack1 _stack2一定有一个空的
         return _stack1.size() > 0 ? _stack1.get(0) / 10 : _stack2.get(0) / 10;
     }
 
     private int onceDice() {
-        return this.random.nextInt(6) + 1;
+        return this.onceDice.apply(null);
     }
 
     public List<BattleResult> getResults() {
         return results;
     }
 
-
+    @Override
+    public String toString() {
+        return "Battle{" +
+                "stack1=" + stack1 +
+                ", stack2=" + stack2 +
+                ", results=" + results +
+                ", remainstack=" + remainstack +
+                ", planeID1=" + planeID1 +
+                ", planeID2=" + planeID2 +
+                '}';
+    }
 }

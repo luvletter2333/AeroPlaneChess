@@ -1,10 +1,16 @@
 package me.luvletter.planechess;
 
+import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
+import java.lang.reflect.Array;
+import java.util.ArrayList;
+import java.util.HashSet;
 
 import me.luvletter.planechess.client.*;
 import me.luvletter.planechess.client.Point;
@@ -151,9 +157,10 @@ public class formMain {
         setJPanelTitle(this.panel_dice1, PlayerColor.getFriendString(e.playerID) + "'s First Dice");
         setJPanelTitle(this.panel_dice2, PlayerColor.getFriendString(e.playerID) + "'s Second Dice");
 
-        diceAnimate(label_status, dpanel_Dice1, getDiceResultinRound(e.diceResult, 1), 1);
-        sleep(1000);
-        diceAnimate(label_status, dpanel_Dice2, getDiceResultinRound(e.diceResult, 2), 2);
+        diceAnimate(dpanel_Dice1, getDiceResultinRound(e.diceResult, 1), 1);
+        //sleep(1000);
+        // TODO: Debug
+        diceAnimate(dpanel_Dice2, getDiceResultinRound(e.diceResult, 2), 2);
 
         // final roll
         this.label_status.setText(String.format("Dice ends. %s got %d and %d.", PlayerColor.getFriendString(e.playerID),
@@ -180,10 +187,9 @@ public class formMain {
             dpanel_Main.Draw(drawer.getResultImage());
             // save img for previewing render
             this.lastImgae = drawer.getResultImage();
-            //System.out.println("first drawing finished!!");
         } else {
             var animation = new Animation(cbs, lastCBS, e.movement, e.backPlanes);
-          //  System.out.println(animation);
+            //  System.out.println(animation);
             animation.Animate(dpanel_Main);
             lastImgae = animation.FinalDraw(dpanel_Main);
         }
@@ -196,11 +202,14 @@ public class formMain {
         setJPanelTitle(this.panel_dice1, "Your First Dice");
         setJPanelTitle(this.panel_dice2, "Your Second Dice");
 
-        diceAnimate(label_status, dpanel_Dice1, getDiceResultinRound(e.diceResult, 1), 1);
-        sleep(1000);
-        diceAnimate(label_status, dpanel_Dice2, getDiceResultinRound(e.diceResult, 2), 2);
+        diceAnimate(dpanel_Dice1, getDiceResultinRound(e.diceResult, 1), 1);
+        //sleep(1000);
+        // TODO: Debug
+        diceAnimate(dpanel_Dice2, getDiceResultinRound(e.diceResult, 2), 2);
 
-        this.label_status.setText(String.format("Dice ends.\nYou got %d and %d.\nClick a plane to\n take off or move.", this.dice_first_result, this.dice_second_result));
+        this.label_status.setText(
+                String.format("Dice ends.\nYou got %d and %d.\nClick a plane to\n take off or move.",
+                        this.dice_first_result, this.dice_second_result));
     }
 
     private PreviewAction lastPreview = null;
@@ -229,7 +238,8 @@ public class formMain {
                 this.lastPreview = new TakeOffPreviewAction(this.localClient);
                 // Draw Preview Image
                 var previewImg = Resource.copyImage(this.lastImgae);
-                DrawHelper.drawPlaneWithAlpha(previewImg.createGraphics(), PositionList.all.get(this.playerID * 100).Point,
+                DrawHelper.drawPlaneWithAlpha(previewImg.createGraphics(),
+                        PositionList.all.get(this.playerID * 100).Point,
                         Resource.getPlaneImage(this.playerID), 0.5f);
                 this.dpanel_Main.Draw(previewImg);
             }
@@ -245,9 +255,90 @@ public class formMain {
     }
 
     private void showBattleResult(BattleResultEvent e) {
-        Battle result = e.Result;
+        Battle battle = e.Result;
         ChessBoardStatus now = e.chessBoardStatus;
-        System.out.println(result);
+        System.out.println(battle);
+        // TODO: Make Battle Animation
+        var drawHelper = new DrawHelper();
+        this.lastCBS.getPlanePosition().keySet().stream()   //所有飞机
+                .filter(plnid -> !battle.stack1.contains(plnid))
+                .filter(plnid -> !battle.stack2.contains(plnid)) //与这次battle无关
+                .forEach(plnid -> drawHelper.Draw(plnid, this.lastCBS.getPlanePosition().get(plnid)));
+        var baseImage = drawHelper.getResultImage();
+        try {
+            ImageIO.write(baseImage, "png", new File("/Users/luvletter/Desktop/battle.png"));
+
+        } catch (IOException ioE) {
+            ioE.printStackTrace();
+        }
+        //生成baseImage
+
+        var friend_name1 = PlayerColor.getFriendString(battle.planeID1 / 10);
+        var friend_name2 = PlayerColor.getFriendString(battle.planeID2 / 10);
+        String battleTitle = "Battle Between " + friend_name1 + " and " + friend_name2 + "!";
+        this.label_status.setText(battleTitle);
+        setJPanelTitle(this.panel_dice1, friend_name1 + "'s Dice");
+        setJPanelTitle(this.panel_dice2, friend_name2 + "'s Dice");
+        // 修改Dice status 标题
+
+        var firstAniImage = Resource.copyImage(baseImage);
+        DrawHelper.drawPlane(firstAniImage.getGraphics(), PositionList.all.get(battle.destPosition).Point,
+                Resource.getPlaneImage(battle.planeID2 / 10), battle.stack2);
+
+        Animation.smallAnimation(firstAniImage,
+                Resource.getPlaneImage(battle.planeID1 / 10),
+                battle.stack1,
+                PositionList.all.get(this.lastCBS.getPlanePosition().get(battle.planeID1)).Point,
+                new Point(PositionList.all.get(battle.destPosition).Point.X + 20, PositionList.all.get(battle.destPosition).Point.Y + 20)
+                , dpanel_Main);
+        // 把stack1移动到stack2脸上
+
+        var _stack1 = new ArrayList<Integer>(battle.stack1);
+        var _stack2 = new ArrayList<Integer>(battle.stack2);
+        var backed = new ArrayList<Integer>(4);
+        // 所有参与者
+
+        for (BattleResult result : battle.getResults()) {
+            // 绘制每一次Battle的动画
+            // 先显示Dice动画
+            this.label_status.setText(battleTitle + "\n" + friend_name1 + " is dicing...");
+            diceAnimate(this.dpanel_Dice1, result.dice1, 1);
+            sleep(1000);
+            this.label_status.setText(battleTitle + "\n" + friend_name2 + " is dicing...");
+            diceAnimate(this.dpanel_Dice2, result.dice2, 1);
+            sleep(1000);
+
+            var anmImage = Resource.copyImage(baseImage);
+            backed.forEach(bpid -> DrawHelper.drawPlane(anmImage.getGraphics(), DrawHelper.HangerPoints.get(bpid),
+                    Resource.getPlaneImage(bpid / 10), bpid));
+            // 已经滚回去的
+
+            // 绘制本次Send Back的动画，本次只滚回去一架飞机
+            var backPlaneID = result.getWinnerPlaneID() == result.planeID1 ? result.planeID2 : result.planeID1;
+            if (_stack1.remove(Integer.valueOf(backPlaneID)))
+                backed.add(backPlaneID);
+            if (_stack2.remove(Integer.valueOf(backPlaneID)))
+                backed.add(backPlaneID);
+
+            if (!_stack1.isEmpty())
+                DrawHelper.drawPlane(anmImage.getGraphics(),
+                        new Point(PositionList.all.get(battle.destPosition).Point.X + 20, PositionList.all.get(battle.destPosition).Point.Y + 20),
+                        Resource.getPlaneImage(_stack1.get(0) / 10), _stack1);
+            if (!_stack2.isEmpty())
+                DrawHelper.drawPlane(anmImage.getGraphics(), PositionList.all.get(battle.destPosition).Point,
+                        Resource.getPlaneImage(_stack2.get(0) / 10), _stack2);
+            // 还没有滚回去的
+
+            Animation.smallAnimation(anmImage, Resource.getPlaneImage(backPlaneID / 10),
+                    new ArrayList<Integer>() {{
+                        add(backPlaneID);
+                    }},
+                    PositionList.all.get(battle.destPosition).Point,
+                    DrawHelper.HangerPoints.get(backPlaneID), dpanel_Main);
+            // 滚回去的动画
+            sleep(500);
+        }
+        this.lastCBS = now;
     }
 
     private int getDiceResultinRound(int raw_result, int round) {

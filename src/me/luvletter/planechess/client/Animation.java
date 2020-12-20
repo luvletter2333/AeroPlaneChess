@@ -340,23 +340,28 @@ public class Animation {
     private static final double STEP = 50;
     private static final int SLEEP_TIME = 10;
 
-    private static void smallAnimation(BufferedImage back, BufferedImage plane_img, HashSet<Integer> stack, Point start_point, Point end_point, Drawable_JPanel dpanel) {
+    public static void smallAnimation(BufferedImage back, BufferedImage plane_img, List<Integer> stack, Point start_point, Point end_point, Drawable_JPanel dpanel) {
         for (int i = 1; i <= STEP; i++) {
             final BufferedImage animate_img = Resource.copyImage(back);
             Graphics g = animate_img.getGraphics();
             DrawHelper.drawPlane(g,
                     new Point(start_point.X + (end_point.X - start_point.X) * (i / STEP),
                             start_point.Y + (end_point.Y - start_point.Y) * (i / STEP)),
-                    plane_img, new ArrayList<>(stack));
+                    plane_img, stack);
             dpanel.Draw(animate_img);
             Utility.sleep(SLEEP_TIME);
         }
         final BufferedImage endImg = Resource.copyImage(back);
-        DrawHelper.drawPlane(endImg.getGraphics(), end_point, plane_img, new ArrayList<>(stack));
+        DrawHelper.drawPlane(endImg.getGraphics(), end_point, plane_img, stack);
         dpanel.Draw(endImg);
     }
 
-    private static void smallAnimation(BufferedImage back, Map<Integer, AnimationMovement> planes, Drawable_JPanel dpanel) {
+    private static void smallAnimation(BufferedImage back, BufferedImage plane_img, HashSet<Integer> stack, Point start_point, Point end_point, Drawable_JPanel dpanel) {
+        smallAnimation(back, plane_img, new ArrayList<>(stack), start_point, end_point, dpanel);
+    }
+
+    private static void smallAnimation(BufferedImage
+                                               back, Map<Integer, AnimationMovement> planes, Drawable_JPanel dpanel) {
         for (int i = 1; i <= STEP; i++) {
             final BufferedImage animate_img = Resource.copyImage(back);
             Graphics g = animate_img.getGraphics();
@@ -377,7 +382,8 @@ public class Animation {
         dpanel.Draw(endImg);
     }
 
-    private static void smallAnimation(BufferedImage back, BufferedImage planeImage, HashMap<Integer, AnimationMovement> planes, Drawable_JPanel dpanel) {
+    private static void smallAnimation(BufferedImage back, BufferedImage
+            planeImage, HashMap<Integer, AnimationMovement> planes, Drawable_JPanel dpanel) {
         for (int i = 1; i <= STEP; i++) {
             final BufferedImage animate_img = Resource.copyImage(back);
             Graphics g = animate_img.getGraphics();

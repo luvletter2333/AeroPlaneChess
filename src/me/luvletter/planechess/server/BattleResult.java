@@ -23,4 +23,19 @@ public class BattleResult {
     public int getWinnerID() {
         return dice1 > dice2 ? this.planeID1 / 10 : this.planeID2 / 10;
     }
+
+    public int getWinnerPlaneID() {
+        return dice1 > dice2 ? this.planeID1 : this.planeID2;
+    }
+
+    @Override
+    public String toString() {
+        return "BattleResult{" +
+                "Winner=" + getWinnerID() +
+                ", planeID1=" + planeID1 +
+                ", planeID2=" + planeID2 +
+                ", dice1=" + dice1 +
+                ", dice2=" + dice2 +
+                '}';
+    }
 }
