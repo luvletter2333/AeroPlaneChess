@@ -85,6 +85,7 @@ public class Main {
                             queue.offer(Int(cmds[i]));
                         game.testCheatDice(queue);
                     }
+                    case "battle" -> game.battle(Int(cmds[1]),Int(cmds[2]));
                 }
                 System.out.println("[Server] run debug command: " + str);
             } catch (Exception e) {
