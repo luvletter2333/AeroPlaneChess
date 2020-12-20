@@ -12,12 +12,10 @@ import me.luvletter.planechess.client.Point;
 import me.luvletter.planechess.client.previewing.PreviewAction;
 import me.luvletter.planechess.client.previewing.PreviewType;
 import me.luvletter.planechess.client.previewing.TakeOffPreviewAction;
+import me.luvletter.planechess.event.BattleResultEvent;
 import me.luvletter.planechess.event.EventManager;
 import me.luvletter.planechess.event.clientevents.*;
-import me.luvletter.planechess.server.ChessBoardStatus;
-import me.luvletter.planechess.server.DiceType;
-import me.luvletter.planechess.server.LocalClient;
-import me.luvletter.planechess.server.PlaneStack;
+import me.luvletter.planechess.server.*;
 
 import static me.luvletter.planechess.client.DiceAnimationHelper.*;
 
@@ -122,6 +120,7 @@ public class formMain {
                         case ShowOtherDice -> show_other_Dice_Animation((ShowOtherDiceEvent) e);
                         case UpdateChessboard -> update_chessboard((UpdateChessboardEvent) e);
                         case Preview -> preview((PreviewEvent) e);
+                        case BattleResult -> showBattleResult((BattleResultEvent) e);
 //                        case DiceAnimation -> dice_Animation((DiceAnimationEvent) e);
                     }
                     sleep(500);
@@ -261,6 +260,12 @@ public class formMain {
                     lastPreview = null;
                 }
         }
+    }
+
+    private void showBattleResult(BattleResultEvent e) {
+        Battle result = e.Result;
+        ChessBoardStatus now = e.chessBoardStatus;
+        System.out.println(result);
     }
 
     private int getDiceResultinRound(int raw_result, int round) {

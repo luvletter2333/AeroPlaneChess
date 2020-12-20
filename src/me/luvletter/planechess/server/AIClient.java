@@ -31,4 +31,9 @@ public class AIClient extends Client {
     public void AnnounceWin(int winner) {
 
     }
+
+    @Override
+    public void AnnounceBattleResult(ChessBoardStatus cbs, Battle battle) {
+
+    }
 }

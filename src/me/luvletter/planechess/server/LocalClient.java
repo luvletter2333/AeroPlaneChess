@@ -1,5 +1,6 @@
 package me.luvletter.planechess.server;
 
+import me.luvletter.planechess.event.BattleResultEvent;
 import me.luvletter.planechess.event.EventManager;
 import me.luvletter.planechess.event.clientevents.AnnounceWinEvent;
 import me.luvletter.planechess.event.clientevents.DiceEvent;
@@ -46,5 +47,10 @@ public class LocalClient extends Client {
     @Override
     public boolean isReady() {
         return true;
+    }
+
+    @Override
+    public void AnnounceBattleResult(ChessBoardStatus cbs, Battle battle) {
+        clientEventManager.push(new BattleResultEvent(cbs, battle));
     }
 }

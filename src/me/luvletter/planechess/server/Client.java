@@ -33,4 +33,6 @@ public abstract class Client {
     public boolean move(int planeID, int step, boolean goStack) {
         return this.game.move(planeID, step, goStack);
     }
+
+    public abstract void AnnounceBattleResult(ChessBoardStatus cbs, Battle battle);
 }

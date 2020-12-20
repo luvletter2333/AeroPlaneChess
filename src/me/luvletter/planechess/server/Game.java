@@ -178,6 +178,29 @@ public class Game {
         return this.dice_random.nextInt(6) + 1;
     }
 
+    public boolean battle(int planeID, int step) {
+        if (!antiCheat(planeID, step))
+            return false;
+        int playerID = planeID / 10;
+        int destPos = calculateDestPos(playerID, this.planePosition.get(planeID), step);
+        // get stack at destPos
+        var stack2 = new ArrayList<Integer>();
+        for (int i : this.planePosition.keySet()) {
+            if (i / 10 == playerID) continue;
+            if (this.planePosition.get(i) == destPos)
+                stack2.add(i);
+        }
+        System.out.println(stack2);
+        if (stack2.size() == 0)
+            return false;
+        var stack1 = getStackerPlanesOrGenerate(this.planeStacks, planeID);
+        var battle = new Battle(stack1, stack2, this.dice_random);
+        int winner_playerID = battle.calculateResult();
+        clients.values().forEach(client -> client.AnnounceBattleResult(getChessboardStatus(), battle));
+        return true;
+    }
+
+
     /**
      * @return true -> test passed
      */
@@ -336,6 +359,23 @@ public class Game {
         }
         // not flying point
         return start_pos + 1;
+    }
+
+    public static ArrayList<Integer> getStackedPlanes(List<PlaneStack> planeStacks, int planeID) {
+        for (PlaneStack planeStack : planeStacks) {
+            if (planeStack.hasPlane(planeID))
+                return new ArrayList<>(planeStack.getStacked_planes());
+        }
+        return null;
+    }
+
+    public static ArrayList<Integer> getStackerPlanesOrGenerate(List<PlaneStack> planeStacks, int planeID) {
+        ArrayList<Integer> ret = getStackedPlanes(planeStacks, planeID);
+        if (ret == null) {
+            ret = new ArrayList<>();
+            ret.add(planeID);
+        }
+        return ret;
     }
 
     private void movePlane(int plane_id, int destPos) {
