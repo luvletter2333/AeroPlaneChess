@@ -144,13 +144,13 @@ public class Game {
             int start_index = PositionList.circleBoard.indexOf(start_pos);
 
             int end_index = (start_index + step) % 52;
-            int end_pos = PositionList.all.get(PositionList.circleBoard.get(end_index)).ID;
+            int end_pos = calculateDestPos(plane_id / 10, start_pos, step);
 
             // judge whether there will be a battle
             // the end position has planes with **different** color
             // in jump mode, planes are sent to their home directly, no battle needed
-            if (this.planePosition.containsValue(end_pos)
-                    && (end_pos / 100) != (plane_id / 10))
+            if (this.planePosition.entrySet().stream()
+                    .anyMatch(entry -> entry.getValue() == end_pos && (entry.getKey() / 10) != (plane_id / 10)))
                 return false;
 
             baseMove(plane_id, step, go_stack);
@@ -287,19 +287,19 @@ public class Game {
     }
 
     /**
-     * Calculate the destination position id
+     * Calculate the first destination position id
      *
      * @return 104, 205, etc. -1 means out of bound.
      */
-    private static int calculateDestPos(int player_id, int from, int step) {
-        if (from % 100 >= 13) {
-            int pos_id = from % 100;
+    public static int calculateDestPos(int player_id, int fromPos, int step) {
+        if (fromPos % 100 >= 13) {
+            int pos_id = fromPos % 100;
             if (pos_id + step > 19)
                 return -1;
             return player_id * 100 + pos_id + step;
         }
         // we assume it still in the circle loop
-        int start_index = PositionList.safeIndexOfCircleBoard(from, player_id);
+        int start_index = PositionList.safeIndexOfCircleBoard(fromPos, player_id);
         int end_index = 0;
         for (int i = 0; i <= step; i++) {
             end_index = (start_index + i) % 52;
@@ -320,7 +320,7 @@ public class Game {
     /**
      * check whether given point is the Flying Point
      */
-    private boolean isFlyingPoint(int start_pos) {
+    public static boolean isFlyingPoint(int start_pos) {
         return start_pos % 10 == 5;
         // Flying Points:
         // 105, 205, 305, 405
@@ -330,7 +330,7 @@ public class Game {
      * get the Jump Destination Position's ID
      * Please make sure there is a jump
      */
-    private int getJumpDestination(int start_pos) {
+    public static int getJumpDestination(int start_pos) {
         if (isFlyingPoint(start_pos)) {
             return start_pos + 3;
         }

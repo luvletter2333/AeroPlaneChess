@@ -110,3 +110,9 @@ skip 2
 skip 3
 skip 4
 
+## 移动
+
+forceDice 1 1
+forceMoveTo 11 101
+forceMoveTo 12 211
+move 11 1 true
