@@ -31,6 +31,7 @@ public class Game {
     private int dice_second_result;
     private boolean dice_moved = false;
     private final Random dice_random;
+    private final Queue<Integer> cheatDice;
 
     private boolean has_won = false;
     private int win_player_id = 0;
@@ -60,6 +61,7 @@ public class Game {
         // initializePlanePosition
         this.planeStacks = new ArrayList<>();
         this.dice_random = new SecureRandom();
+        this.cheatDice = new LinkedList<Integer>();
         this.clients = new HashMap<>(4);
 
         this.gameEventManager = new EventManager();
@@ -249,7 +251,10 @@ public class Game {
     }
 
     private int onceDice() {
-        return this.dice_random.nextInt(6) + 1;
+        if (this.cheatDice.size() == 0)
+            return this.dice_random.nextInt(6) + 1;
+        else
+            return this.cheatDice.poll();
     }
 
     /**
@@ -566,6 +571,10 @@ public class Game {
         // initializePlanePosition
         this.planeStacks = new ArrayList<>();
         _announceStart();
+    }
+
+    public void testCheatDice(Queue<Integer> cheatDice) {
+        this.cheatDice.addAll(cheatDice);
     }
 
 }

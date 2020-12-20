@@ -6,9 +6,7 @@ import me.luvletter.planechess.server.Game;
 import me.luvletter.planechess.server.LocalClient;
 
 import javax.swing.*;
-import java.util.ArrayList;
-import java.util.Scanner;
-import java.util.TimerTask;
+import java.util.*;
 import java.util.Timer;
 
 public class Main {
@@ -81,6 +79,12 @@ public class Main {
                     case "skip" -> game.testSkip(Int(cmds[1]));
                     case "nextloop" -> game.testNextLoop();
                     case "restart" -> game.testReStart();
+                    case "cheatDice" -> {
+                        var queue = new ArrayDeque<Integer>();
+                        for(int i = 1;i< cmds.length;i++)
+                            queue.offer(Int(cmds[i]));
+                        game.testCheatDice(queue);
+                    }
                 }
                 System.out.println("[Server] run debug command: " + str);
             } catch (Exception e) {
