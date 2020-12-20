@@ -9,4 +9,11 @@ public class AnnounceWinEvent extends Event {
         super(EventType.AnnounceWin);
         this.winner_id = winner_id;
     }
+
+    @Override
+    public String toString() {
+        return "AnnounceWinEvent{" +
+                "winner_id=" + winner_id +
+                '}';
+    }
 }

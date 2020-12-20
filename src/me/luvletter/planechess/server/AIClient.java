@@ -20,10 +20,16 @@ public class AIClient extends Client {
     @Override
     public void Dice(DiceType diceType, int dice_count, int dice_result) {
         System.out.printf("[AI] %s %s %s\n", diceType, dice_count, dice_result);
+        skip();
     }
 
     @Override
     public void ShowOtherDiceResult(int player_id, DiceType diceType, int dice_count, int dice_result) {
+
+    }
+
+    @Override
+    public void AnnounceOtherSkip(int playerID) {
 
     }
 

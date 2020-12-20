@@ -14,4 +14,13 @@ public final class DiceEvent extends Event {
         this.diceCount = diceCount;
         this.diceResult = diceResult;
     }
+
+    @Override
+    public String toString() {
+        return "DiceEvent{" +
+                "diceType=" + diceType +
+                ", diceCount=" + diceCount +
+                ", diceResult=" + diceResult +
+                '}';
+    }
 }

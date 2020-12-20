@@ -2,10 +2,7 @@ package me.luvletter.planechess.server;
 
 import me.luvletter.planechess.event.BattleResultEvent;
 import me.luvletter.planechess.event.EventManager;
-import me.luvletter.planechess.event.clientevents.AnnounceWinEvent;
-import me.luvletter.planechess.event.clientevents.DiceEvent;
-import me.luvletter.planechess.event.clientevents.ShowOtherDiceEvent;
-import me.luvletter.planechess.event.clientevents.UpdateChessboardEvent;
+import me.luvletter.planechess.event.clientevents.*;
 
 import java.util.HashSet;
 
@@ -21,7 +18,6 @@ public class LocalClient extends Client {
     public EventManager getClientEventManager() {
         return clientEventManager;
     }
-
 
     @Override
     public void UpdateClientChessBoard(ChessBoardStatus cbs, Movement movement, HashSet<Integer> backPlanes, boolean isSkipped, boolean isInitialize) {
@@ -42,6 +38,11 @@ public class LocalClient extends Client {
     @Override
     public void AnnounceWin(int winner) {
         clientEventManager.push(new AnnounceWinEvent(winner));
+    }
+
+    @Override
+    public void AnnounceOtherSkip(int playerID) {
+        this.clientEventManager.push(new OtherSkipEvent(playerID));
     }
 
     @Override

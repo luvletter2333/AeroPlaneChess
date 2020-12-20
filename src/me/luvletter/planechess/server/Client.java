@@ -26,12 +26,18 @@ public abstract class Client {
 
     public abstract void AnnounceWin(int winner);
 
-    public boolean takeOff() {
-        return this.game.takeOff(this.player_id);
+    public abstract void AnnounceOtherSkip(int playerID);
+
+    public void takeOff() {
+        this.game.takeOff(this.player_id);
     }
 
-    public boolean move(int planeID, int step, boolean goStack) {
-        return this.game.move(planeID, step, goStack);
+    public void move(int planeID, int step, boolean goStack) {
+        this.game.move(planeID, step, goStack);
+    }
+
+    public void skip() {
+        this.game.skip(this.player_id);
     }
 
     public abstract void AnnounceBattleResult(ChessBoardStatus cbs, Battle battle);

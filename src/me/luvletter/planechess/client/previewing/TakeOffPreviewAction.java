@@ -9,6 +9,7 @@ public class TakeOffPreviewAction extends PreviewAction {
 
     @Override
     public boolean apply() {
-        return this.client.takeOff();
+        this.client.takeOff();
+        return true;
     }
 }

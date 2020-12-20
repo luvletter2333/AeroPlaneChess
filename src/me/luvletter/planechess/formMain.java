@@ -95,10 +95,7 @@ public class formMain {
             public void mouseClicked(MouseEvent e) {
                 super.mouseClicked(e);
                 var p = ChessBoardClickHelper.getPointfromMouseEvent(e);
-                System.out.println(p);
                 eventManager.push(new PreviewEvent(p));
-
-                //   System.out.println(ps);
             }
 
         });
@@ -108,7 +105,7 @@ public class formMain {
             while (true) {
                 try {
                     e = eventManager.get();
-                    System.out.println("UI Update Event: Remaining " + eventManager.size() + ", this: " + e.toString());
+                    System.out.println("[Client UI Event] Remaining " + eventManager.size() + ", this: " + e.toString());
                     switch (e.getType()) {
                         case showDice -> showDice((DiceEvent) e);
                         case ShowOtherDice -> show_other_Dice_Animation((ShowOtherDiceEvent) e);
@@ -117,7 +114,7 @@ public class formMain {
                         case BattleResult -> showBattleResult((BattleResultEvent) e);
 //                        case DiceAnimation -> dice_Animation((DiceAnimationEvent) e);
                     }
-                    sleep(500);
+                    sleep(50);
                 } catch (Exception ex) {
                     ex.printStackTrace();
                 }
@@ -135,8 +132,16 @@ public class formMain {
         // under Fly mode, dice Count is always 2
         this.dice_first_result = e.diceResult / 10;
         this.dice_second_result = e.diceResult % 10;
-
         dice_Animation(e);
+        if (this.dice_first_result != 6 && this.dice_second_result != 6 &&
+                this.lastCBS.getPlanePosition().entrySet().stream()
+                        .filter(entry -> entry.getKey() / 10 == this.playerID)
+                        .allMatch(entry -> entry.getValue() % 100 == 99)) {
+            // 无法takeoff 全在机库 只能skip
+            JOptionPane.showMessageDialog(null, "There is nothing else to do but skip this loop~");
+            System.out.println("OK");
+            localClient.skip();
+        }
     }
 
     private void show_other_Dice_Animation(ShowOtherDiceEvent e) {
@@ -175,10 +180,10 @@ public class formMain {
             dpanel_Main.Draw(drawer.getResultImage());
             // save img for previewing render
             this.lastImgae = drawer.getResultImage();
-            System.out.println("first drawing finished!!");
+            //System.out.println("first drawing finished!!");
         } else {
             var animation = new Animation(cbs, lastCBS, e.movement, e.backPlanes);
-            System.out.println(animation);
+          //  System.out.println(animation);
             animation.Animate(dpanel_Main);
             lastImgae = animation.FinalDraw(dpanel_Main);
         }
@@ -187,7 +192,7 @@ public class formMain {
 
     // Show my dicing animation
     private void dice_Animation(DiceEvent e) {
-        this.label_status.setText( "You are dicing.\nGood luck~");
+        this.label_status.setText("You are dicing.\nGood luck~");
         setJPanelTitle(this.panel_dice1, "Your First Dice");
         setJPanelTitle(this.panel_dice2, "Your Second Dice");
 
@@ -195,8 +200,7 @@ public class formMain {
         sleep(1000);
         diceAnimate(label_status, dpanel_Dice2, getDiceResultinRound(e.diceResult, 2), 2);
 
-
-        this.label_status.setText(String.format("Dice ends.\nYou got %d and %d.\nYou can choose a plane to move or take off a plane", this.dice_first_result, this.dice_second_result));
+        this.label_status.setText(String.format("Dice ends.\nYou got %d and %d.\nClick a plane to\n take off or move.", this.dice_first_result, this.dice_second_result));
     }
 
     private PreviewAction lastPreview = null;

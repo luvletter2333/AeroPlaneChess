@@ -10,4 +10,11 @@ public class PreviewEvent extends Event {
         super(EventType.Preview);
         this.clickPoint = clickPoint;
     }
+
+    @Override
+    public String toString() {
+        return "PreviewEvent{" +
+                "clickPoint=" + clickPoint +
+                '}';
+    }
 }

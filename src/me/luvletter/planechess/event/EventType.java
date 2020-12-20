@@ -7,5 +7,12 @@ public enum EventType {
     DiceAnimation,
     AnnounceWin,
     Preview,
-    BattleResult
+    BattleResult,
+    OtherSkipEvent,
+
+    GameMove,
+    GameSkip,
+    GameTakeOff,
+    GameBattle,
+    GameAnnounceStart
 }

@@ -18,4 +18,13 @@ public final class ShowOtherDiceEvent extends Event {
         this.diceResult = diceResult;
     }
 
+    @Override
+    public String toString() {
+        return "ShowOtherDiceEvent{" +
+                "playerID=" + playerID +
+                ", diceType=" + diceType +
+                ", diceCount=" + diceCount +
+                ", diceResult=" + diceResult +
+                '}';
+    }
 }

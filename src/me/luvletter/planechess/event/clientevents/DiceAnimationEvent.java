@@ -14,4 +14,13 @@ public class DiceAnimationEvent extends Event {
         this.round = round;
         this.count = count;
     }
+
+    @Override
+    public String toString() {
+        return "DiceAnimationEvent{" +
+                "result=" + result +
+                ", round=" + round +
+                ", count=" + count +
+                '}';
+    }
 }
