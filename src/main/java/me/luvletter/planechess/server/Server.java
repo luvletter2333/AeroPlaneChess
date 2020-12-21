@@ -22,13 +22,15 @@ public class Server extends WebSocketServer {
 
     private final String hostname;
     private final int port;
-    private final HashMap<String, ServerGame> games = new HashMap<>();
-    private final ArrayList<String> clientUUIDs = new ArrayList<>();
+    private volatile HashMap<String, ServerGame> games = new HashMap<>();
+    private volatile ArrayList<String> clientUUIDs = new ArrayList<>();
+    private final String serverName;
 
-    public Server(String hostname, int port) {
+    public Server(String hostname, int port, String serverName) {
         super(new InetSocketAddress(hostname, port));
         this.hostname = hostname;
         this.port = port;
+        this.serverName = serverName;
     }
 
     @Override
@@ -39,6 +41,9 @@ public class Server extends WebSocketServer {
                 s = new String(clientHandshake.getContent(), StandardCharsets.UTF_8);
             String uuid = generateUUID();
             webSocket.setAttachment(uuid);
+            JSONObject obj = new JSONObject();
+            // TODO: Send my Name
+            webSocket.send();
             log("new Connection " + uuid + s + ", From" + webSocket.getRemoteSocketAddress().toString());
         } catch (Exception e) {
             log(" Exception " + e.getClass().toString() + " When handling " + webSocket);
@@ -76,6 +81,7 @@ public class Server extends WebSocketServer {
             if (jsonObj.getString("action").equals("ping")) {
                 JSONObject ret = new JSONObject();
                 ret.put("status", 200);
+                ret.put("action", "ping");
                 ret.put("data", "pong!");
                 webSocket.send(ret.toJSONString());
                 return;
@@ -83,6 +89,7 @@ public class Server extends WebSocketServer {
             if (jsonObj.getString("action").equals("list_games")) {
                 JSONObject ret = new JSONObject();
                 ret.put("status", 200);
+                ret.put("action", "list_games");
                 var games = this.games.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, entry -> entry.getValue().RoomName));
                 ret.put("data", games);
                 webSocket.send(ret.toJSONString());
@@ -114,6 +121,7 @@ public class Server extends WebSocketServer {
                 this.games.put(serverGame.UUID, serverGame);
                 JSONObject ret = new JSONObject();
                 ret.put("status", 200);
+                ret.put("action", "create_game");
                 ret.put("uuid", serverGame.UUID);
                 webSocket.send(ret.toJSONString());
                 return;

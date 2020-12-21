@@ -6,7 +6,7 @@ import me.luvletter.planechess.event.clientevents.*;
 
 import java.util.HashSet;
 
-public class LocalClient extends Client {
+public class LocalClient extends GameClient {
 
     private final EventManager clientEventManager;
 

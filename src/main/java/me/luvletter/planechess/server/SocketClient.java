@@ -8,7 +8,7 @@ import org.java_websocket.WebSocket;
 
 import java.util.HashSet;
 
-public class SocketClient extends Client {
+public class SocketClient extends GameClient {
 
     public final String socketUUID;
     private final WebSocket webSocket;

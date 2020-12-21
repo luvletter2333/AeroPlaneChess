@@ -37,7 +37,7 @@ public class Game {
     private final Thread gameThread;
     private final EventManager gameEventManager;
 
-    protected final HashMap<Integer, Client> clients;
+    protected final HashMap<Integer, GameClient> clients;
 
     private volatile Movement movement;
     private volatile HashSet<Integer> backPlane;
@@ -97,7 +97,7 @@ public class Game {
     /**
      * add Client, and automatically bind Game
      */
-    public void addClient(Client client) {
+    public void addClient(GameClient client) {
         if (!player_ids.contains(client.player_id))
             return;
         this.clients.put(client.player_id, client);

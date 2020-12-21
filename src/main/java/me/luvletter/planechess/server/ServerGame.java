@@ -1,7 +1,7 @@
 package me.luvletter.planechess.server;
 
 import me.luvletter.planechess.game.AIClient;
-import me.luvletter.planechess.game.Client;
+import me.luvletter.planechess.game.GameClient;
 import me.luvletter.planechess.game.Game;
 import org.java_websocket.WebSocket;
 
@@ -31,7 +31,7 @@ public class ServerGame extends Game {
             return false;
         if (socketUUIDs.contains(webSocket.getAttachment()))
             return false;
-        Client socketClient = new SocketClient(playerID, webSocket);
+        GameClient socketClient = new SocketClient(playerID, webSocket);
         addClient(socketClient);
         return true;
     }
@@ -49,7 +49,7 @@ public class ServerGame extends Game {
     }
 
     public SocketClient getSocketClient(String uuid){
-        for (Client client : this.clients.values()) {
+        for (GameClient client : this.clients.values()) {
             if(client instanceof SocketClient)
                 if(((SocketClient) client).socketUUID.equals(uuid))
                     return (SocketClient) client;

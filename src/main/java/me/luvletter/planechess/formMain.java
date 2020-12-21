@@ -63,7 +63,7 @@ public class formMain {
 
     private final Object board_drawing_lock = new Object(); // Main Canvas Drawing Lock
 
-    private LocalClient localClient;
+    private GameClient localClient;
     private final int playerID;
 
     private EventManager eventManager;
@@ -132,7 +132,6 @@ public class formMain {
     // Events
     private void showDice(DiceEvent e) {
         this.isMyDice = true;
-
         this.dice_type = e.diceType;
         this.dice_count = e.diceCount;
         // under Fly mode, dice Count is always 2

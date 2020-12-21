@@ -1,9 +1,10 @@
 package me.luvletter.planechess.client.previewing;
 
+import me.luvletter.planechess.game.GameClient;
 import me.luvletter.planechess.game.LocalClient;
 
 public class TakeOffPreviewAction extends PreviewAction {
-    public TakeOffPreviewAction(LocalClient client) {
+    public TakeOffPreviewAction(GameClient client) {
         super(PreviewType.TakeOff, client);
     }
 

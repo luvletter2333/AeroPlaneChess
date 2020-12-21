@@ -3,12 +3,12 @@ package me.luvletter.planechess.game;
 
 import java.util.HashSet;
 
-public abstract class Client {
+public abstract class GameClient {
 
     public final int player_id;
     protected Game game;
 
-    public Client(int player_id) {
+    public GameClient(int player_id) {
         this.player_id = player_id;
     }
 

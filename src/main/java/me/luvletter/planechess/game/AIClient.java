@@ -2,7 +2,7 @@ package me.luvletter.planechess.game;
 
 import java.util.HashSet;
 
-public class AIClient extends Client {
+public class AIClient extends GameClient {
     public AIClient(int player_id) {
         super(player_id);
     }
