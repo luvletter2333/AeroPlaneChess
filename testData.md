@@ -58,23 +58,14 @@ restart
 ## 吃子动画4
 
 forceMoveTo 11 103
-
 forceMoveTo 12 104
-
 forceMoveTo 13 105
-
 forceMoveTo 31 315
-
 forceMoveTo 32 316
-
 forceMove 31 1 true
-
 forceMoveTo 41 108
-
 forceMoveTo 42 411
-
 forceMove 42 1 true
-
 forceMove 11 4 true
 restart
 
@@ -155,3 +146,23 @@ skip 2
 forceDice 1 1
 cheatDice 2 1
 battle 12 1
+
+
+## Test3 一坨打一坨
+
+cheatDice 1 2 1 6
+
+forceMoveTo 11 101
+forceMoveTo 12 211
+forceMove 11 1 true
+
+forceMoveTo 21 102
+forceMoveTo 22 405
+forceMove 22 1 true
+
+skip 1
+skip 2
+forceDice 2 1
+cheatDice 1 6 5 2 3 2 
+battle 11 3
+

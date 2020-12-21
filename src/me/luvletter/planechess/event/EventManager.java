@@ -8,7 +8,7 @@ public class EventManager {
     private BlockingQueue<Event> blockingQueue;
 
     public EventManager(){
-        this.blockingQueue = new LinkedBlockingQueue<>(10);
+        this.blockingQueue = new LinkedBlockingQueue<>(25);
     }
 
     public void push(Event e){

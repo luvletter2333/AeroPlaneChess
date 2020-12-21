@@ -31,7 +31,7 @@ public class Battle {
 
     /**
      * 用于服务器在想客户端传递数据时的deepCopy
-     * */
+     */
     public Battle(Battle oldObj) {
         this.stack1 = new ArrayList<>(oldObj.stack1);
         this.stack2 = new ArrayList<>(oldObj.stack2);
@@ -86,6 +86,11 @@ public class Battle {
 
     public List<BattleResult> getResults() {
         return results;
+    }
+
+    public int getWinnerPlayerID() {
+        return this.remainstack.get(0) / 10 == this.planeID1 / 10
+                ? this.planeID1 / 10 : this.planeID2 / 10;
     }
 
     @Override

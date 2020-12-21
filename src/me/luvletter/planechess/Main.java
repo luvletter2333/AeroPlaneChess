@@ -34,18 +34,18 @@ public class Main {
         var tmp_player_list = new ArrayList<Integer>();
         tmp_player_list.add(1);
         tmp_player_list.add(2);
-        //   tmp_player_list.add(3);
-        //   tmp_player_list.add(4);
+        tmp_player_list.add(3);
+        tmp_player_list.add(4);
 
         // create a new game
 
-        var game = new Game(2, tmp_player_list);
+        var game = new Game(4, tmp_player_list);
 
         var client = new LocalClient(1);
         game.addClient(client);
         game.addClient(new AIClient(2));
-        //  game.addClient(new AIClient(3));
-        // game.addClient(new AIClient(4));
+        game.addClient(new AIClient(3));
+        game.addClient(new AIClient(4));
 
         var form = new formMain(client, client.getClientEventManager());
         var gui = new JFrame("Test App");
@@ -58,6 +58,7 @@ public class Main {
         new Timer().schedule(new TimerTask() {
             @Override
             public void run() {
+                game.testCheatDice(new ArrayDeque<Integer>(Arrays.asList(6, 6, 1, 2)));
                 game.announceStart();
             }
         }, 1500);
@@ -86,7 +87,7 @@ public class Main {
                         game.testCheatDice(queue);
                     }
                     case "battle" -> game.battle(Int(cmds[1]), Int(cmds[2]));
-                    case "updateUI" ->game.testUpdateUI();
+                    case "updateUI" -> game.testUpdateUI();
                 }
                 System.out.println("[Server] run debug command: " + str);
             } catch (Exception e) {

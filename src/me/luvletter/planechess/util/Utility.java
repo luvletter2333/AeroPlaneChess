@@ -22,6 +22,7 @@ public class Utility {
 
     /**
      * Calculate the first destination position id
+     * in this method, jump or fly is not considered
      *
      * @return 104, 205, etc. -1 means out of bound.
      */

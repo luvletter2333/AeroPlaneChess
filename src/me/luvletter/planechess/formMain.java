@@ -10,10 +10,15 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
+import java.util.Map;
+import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 import me.luvletter.planechess.client.*;
 import me.luvletter.planechess.client.Point;
+import me.luvletter.planechess.client.previewing.MovePreviewAction;
 import me.luvletter.planechess.client.previewing.PreviewAction;
 import me.luvletter.planechess.client.previewing.PreviewType;
 import me.luvletter.planechess.client.previewing.TakeOffPreviewAction;
@@ -158,8 +163,8 @@ public class formMain {
         setJPanelTitle(this.panel_dice2, PlayerColor.getFriendString(e.playerID) + "'s Second Dice");
 
         diceAnimate(dpanel_Dice1, getDiceResultinRound(e.diceResult, 1), 1);
-        //sleep(1000);
-        // TODO: Debug
+        sleep(1000);
+        //TODO: Debug
         diceAnimate(dpanel_Dice2, getDiceResultinRound(e.diceResult, 2), 2);
 
         // final roll
@@ -184,16 +189,16 @@ public class formMain {
             pst.forEach((plane_id, raw_pos) -> {
                 drawer.Draw(plane_id, raw_pos);
             });
-            dpanel_Main.Draw(drawer.getResultImage());
+            this.dpanel_Main.Draw(drawer.getResultImage());
             // save img for previewing render
             this.lastImgae = drawer.getResultImage();
         } else {
             var animation = new Animation(cbs, lastCBS, e.movement, e.backPlanes);
             //  System.out.println(animation);
             animation.Animate(dpanel_Main);
-            lastImgae = animation.FinalDraw(dpanel_Main);
+            this.lastImgae = animation.FinalDraw(dpanel_Main);
         }
-        lastCBS = cbs;
+        this.lastCBS = cbs;
     }
 
     // Show my dicing animation
@@ -203,7 +208,7 @@ public class formMain {
         setJPanelTitle(this.panel_dice2, "Your Second Dice");
 
         diceAnimate(dpanel_Dice1, getDiceResultinRound(e.diceResult, 1), 1);
-        //sleep(1000);
+        sleep(1000);
         // TODO: Debug
         diceAnimate(dpanel_Dice2, getDiceResultinRound(e.diceResult, 2), 2);
 
@@ -242,16 +247,65 @@ public class formMain {
                         PositionList.all.get(this.playerID * 100).Point,
                         Resource.getPlaneImage(this.playerID), 0.5f);
                 this.dpanel_Main.Draw(previewImg);
+            } else {
+                // delete all preview Image
+                this.dpanel_Main.Draw(this.lastImgae);
             }
+            return;
         }
         if (matchPos.ID % 100 == 0) {
             // 点击起飞处
-            if (lastPreview != null)
-                if (lastPreview.previewType == PreviewType.TakeOff) {
-                    lastPreview.apply();
-                    lastPreview = null;
+            if (this.lastPreview != null)
+                if (this.lastPreview.previewType == PreviewType.TakeOff) {
+                    this.lastPreview.apply();
+                    this.lastPreview = null;
+                    return;
                 }
         }
+        if (this.lastPreview != null) {
+            if (this.lastPreview.previewType == PreviewType.Move) {
+                var previewObj = (MovePreviewAction) this.lastPreview;
+                var clickpMlst = previewObj.possibleMove.stream()
+                        .filter(pM -> calculateDestPos(this.playerID, previewObj.sourcePos, pM) == matchPos.ID)
+                        .collect(Collectors.toList());
+                if (clickpMlst.size() > 0) {
+                    // click a valid Move dest
+                    boolean goStack = JOptionPane.showConfirmDialog(null,
+                            "Do you want to form a stack if can?", "PlaneChess",
+                            JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION;
+                    previewObj.apply(clickpMlst.get(0), goStack);
+                    this.lastPreview = null;
+                    return;
+                }
+            }
+        }
+        var clickPlanesList = this.lastCBS.getPlanePosition().entrySet().stream()
+                .filter(entry -> entry.getKey() / 10 == this.playerID)
+                .filter(entry -> entry.getValue() == matchPos.ID)
+                .filter(entry -> entry.getValue() % 100 != 99)
+                .map(entry -> entry.getKey())
+                .collect(Collectors.toList());
+        if (clickPlanesList.size() > 0) {
+            var possibleMove = new ArrayList<Integer>();
+            possibleMove.add(dice_first_result + dice_second_result);
+            possibleMove.add(dice_first_result * dice_second_result);
+            possibleMove.add(Math.abs(dice_first_result - dice_second_result));
+            if (dice_first_result % dice_second_result == 0)
+                possibleMove.add(dice_first_result / dice_second_result);
+            if (dice_second_result % dice_first_result == 0)
+                possibleMove.add(dice_second_result / dice_first_result);
+            possibleMove.removeIf(pM -> pM > 12);
+            int rep = clickPlanesList.get(0);
+            var previewImg = Resource.copyImage(this.lastImgae);
+            possibleMove.forEach(psMove ->
+                    DrawHelper.drawPlaneWithAlpha(previewImg.createGraphics(),
+                            PositionList.all.get(calculateDestPos(this.playerID, matchPos.ID, psMove)).Point,
+                            Resource.getPlaneImage(this.playerID), 0.5f));
+            this.dpanel_Main.Draw(previewImg);
+
+            this.lastPreview = new MovePreviewAction(localClient, rep, matchPos.ID, possibleMove);
+        }
+
     }
 
     private void showBattleResult(BattleResultEvent e) {
@@ -333,11 +387,26 @@ public class formMain {
                     new ArrayList<Integer>() {{
                         add(backPlaneID);
                     }},
-                    PositionList.all.get(battle.destPosition).Point,
+                    new Point(PositionList.all.get(battle.destPosition).Point.X + 20, PositionList.all.get(battle.destPosition).Point.Y + 20),
                     DrawHelper.HangerPoints.get(backPlaneID), dpanel_Main);
             // 滚回去的动画
             sleep(500);
         }
+        //绘制FinalImage
+        // 先绘制已经滚回去的
+        backed.forEach(bpid -> DrawHelper.drawPlane(baseImage.getGraphics(),
+                DrawHelper.HangerPoints.get(bpid), Resource.getPlaneImage(bpid / 10), bpid));
+        //最后把remaining stack移动到destPos
+        if (battle.getWinnerPlayerID() == battle.planeID1 / 10)
+            this.lastImgae = Animation.smallAnimation(baseImage, Resource.getPlaneImage(battle.remainstack.get(0) / 10),
+                    new ArrayList<>() {{
+                        addAll(_stack1);
+                        addAll(_stack2);
+                    }},
+                    new Point(PositionList.all.get(battle.destPosition).Point.X + 20, PositionList.all.get(battle.destPosition).Point.Y + 20),
+                    PositionList.all.get(battle.destPosition).Point, dpanel_Main);
+        else
+            this.lastImgae = baseImage;
         this.lastCBS = now;
     }
 

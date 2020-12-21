@@ -340,7 +340,7 @@ public class Animation {
     private static final double STEP = 50;
     private static final int SLEEP_TIME = 10;
 
-    public static void smallAnimation(BufferedImage back, BufferedImage plane_img, List<Integer> stack, Point start_point, Point end_point, Drawable_JPanel dpanel) {
+    public static BufferedImage smallAnimation(BufferedImage back, BufferedImage plane_img, List<Integer> stack, Point start_point, Point end_point, Drawable_JPanel dpanel) {
         for (int i = 1; i <= STEP; i++) {
             final BufferedImage animate_img = Resource.copyImage(back);
             Graphics g = animate_img.getGraphics();
@@ -354,6 +354,7 @@ public class Animation {
         final BufferedImage endImg = Resource.copyImage(back);
         DrawHelper.drawPlane(endImg.getGraphics(), end_point, plane_img, stack);
         dpanel.Draw(endImg);
+        return endImg;
     }
 
     private static void smallAnimation(BufferedImage back, BufferedImage plane_img, HashSet<Integer> stack, Point start_point, Point end_point, Drawable_JPanel dpanel) {

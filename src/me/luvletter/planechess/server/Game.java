@@ -240,6 +240,10 @@ public class Game {
             applyBattleResult(stack2, battle.remainstack, destPos, stack1);
         }
         clients.values().forEach(client -> client.AnnounceBattleResult(getChessboardStatus(), battle));
+        this.movement = null;
+        this.backPlane = null;
+        this.dice_moved = true;
+        nextLoop();
         return true;
     }
 

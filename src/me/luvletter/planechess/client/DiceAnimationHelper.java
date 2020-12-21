@@ -37,7 +37,7 @@ public class DiceAnimationHelper {
         sleep(150);
         for (int i = 1; i < 9; i++) { // Animation loop
             dpanel_Dice.Draw(getAnimationImage(i));
-           // sleep(300);
+            sleep(300);
             // TODO: Debug
         }
         // the final loop, show result
