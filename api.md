@@ -26,3 +26,31 @@
 
 {"uuid":"xxxxx",
 "status":200}
+
+### game
+
+#### action:
+
+##### move
+
+- int plane_id
+
+- int step
+
+- boolean go_stack
+
+#### skip
+
+#### takeoff
+
+#### battle
+
+- int plane_id
+
+- int takeoff
+
+
+## Server -> Client:
+
+# action: eventNames
+# data : Map

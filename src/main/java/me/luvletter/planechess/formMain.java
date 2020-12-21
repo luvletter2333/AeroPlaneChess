@@ -113,7 +113,7 @@ public class formMain {
                     e = eventManager.get();
                     System.out.println("[Client UI Event] Remaining " + eventManager.size() + ", this: " + e.toString());
                     switch (e.getType()) {
-                        case showDice -> showDice((DiceEvent) e);
+                        case showMyDice -> showDice((DiceEvent) e);
                         case ShowOtherDice -> show_other_Dice_Animation((ShowOtherDiceEvent) e);
                         case UpdateChessboard -> update_chessboard((UpdateChessboardEvent) e);
                         case Preview -> preview((PreviewEvent) e);

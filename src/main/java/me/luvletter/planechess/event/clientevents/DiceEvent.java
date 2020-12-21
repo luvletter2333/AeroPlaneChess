@@ -9,7 +9,7 @@ public final class DiceEvent extends Event {
     public final int diceCount;
     public final int diceResult;
     public DiceEvent(DiceType diceType, int diceCount, int diceResult) {
-        super(EventType.showDice);
+        super(EventType.showMyDice);
         this.diceType = diceType;
         this.diceCount = diceCount;
         this.diceResult = diceResult;

@@ -128,7 +128,7 @@ public class Server extends WebSocketServer {
                         .filter(sg -> sg.containUUID(socketUUID)).collect(Collectors.toList());
                 if (lst.size() == 0)
                     return;
-                lst.get(0).getSocketClient(socketUUID).proceedRequest(message);
+                lst.get(0).getSocketClient(socketUUID).proceedRequest(jsonObj.getJSONObject("data"));
                 return;
             }
             // TODO: proceed None Game actions
