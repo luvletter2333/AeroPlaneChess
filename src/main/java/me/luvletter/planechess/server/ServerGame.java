@@ -6,14 +6,17 @@ import me.luvletter.planechess.game.Game;
 import org.java_websocket.WebSocket;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class ServerGame extends Game {
     public final String UUID;
+    public final String RoomName;
     private final ArrayList<String> socketUUIDs = new ArrayList<>();
 
-    public ServerGame(String uuid, ArrayList<Integer> player_ids, ArrayList<Integer> realPlayerIDs) {
-        super(player_ids.size(), player_ids);
+    public ServerGame(String uuid, List<Integer> player_ids, List<Integer> realPlayerIDs, String roomName) {
+        super(player_ids.size(), new ArrayList<>(player_ids));
         this.UUID = uuid;
+        this.RoomName = roomName;
         // attach AI Clients
         var ai = new ArrayList<>(player_ids);
         ai.removeAll(realPlayerIDs);
