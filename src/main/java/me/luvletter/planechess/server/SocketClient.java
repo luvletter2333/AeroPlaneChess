@@ -76,7 +76,7 @@ public class SocketClient extends Client {
     @Override
     public void AnnounceBattleResult(ChessBoardStatus cbs, Battle battle) {
         JSONObject json = new JSONObject();
-        json.put("action", "UpdateChessboard");
+        json.put("action", "BattleResult");
         json.put("cbs", JSON.toJSON(cbs));
         json.put("movement", JSON.toJSON(battle));
         webSocket.send(json.toJSONString());
