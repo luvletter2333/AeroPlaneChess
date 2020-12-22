@@ -69,8 +69,8 @@ public class NetworkClient {
                                     ChessBoardStatus cbs = jsonData.getJSONObject("cbs").toJavaObject(ChessBoardStatus.class);
                                     Movement movement = jsonData.getJSONObject("movement") == null ?
                                             null : jsonData.getJSONObject("movement").toJavaObject(Movement.class);
-                                    HashSet<Integer> backPlanes = jsonData.getJSONObject("backPlanes") == null ?
-                                            null : jsonData.getJSONObject("backPlanes").toJavaObject(HashSet.class);
+                                    HashSet<Integer> backPlanes = jsonData.getJSONArray("backPlanes") == null ?
+                                            null : new HashSet<Integer>(jsonData.getJSONArray("backPlanes").toJavaList(Integer.class));
                                     boolean isSkipped = jsonData.getBoolean("isSkipped");
                                     boolean isInitialize = jsonData.getBoolean("isInitialize");
                                     localGameClient.UpdateClientChessBoard(cbs, movement, backPlanes, isSkipped, isInitialize);

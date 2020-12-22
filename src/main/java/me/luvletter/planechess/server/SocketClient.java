@@ -138,4 +138,12 @@ public class SocketClient extends GameClient {
             e.printStackTrace();
         }
     }
+
+    @Override
+    public String toString() {
+        return "SocketClient{" +
+                "socketUUID='" + socketUUID + '\'' +
+                ", player_id=" + player_id +
+                '}';
+    }
 }

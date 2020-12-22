@@ -25,7 +25,7 @@ public class ServerGame extends Game {
         var ai = new ArrayList<>(player_ids);
         ai.removeAll(realPlayerIDs);
         for (int AI_id : ai) {
-            this.addClient(new AIClient(AI_id));
+            this.addClient(new AIClient(AI_id).bindGame(this));
         }
     }
 
@@ -38,12 +38,13 @@ public class ServerGame extends Game {
         return remainList.stream().map(Object::toString).collect(Collectors.joining(", "));
     }
 
-    public boolean attachClientSocket(WebSocket webSocket, int playerID) {
+    public boolean attachClientSocket(WebSocket webSocket, int playerID, String socketUUID) {
         if (clients.containsKey(playerID))
             return false;
         if (socketUUIDs.containsKey(webSocket.getAttachment()))
             return false;
         GameClient socketClient = new SocketClient(playerID, webSocket);
+        this.socketUUIDs.put(socketUUID, playerID);
         socketClient.bindGame(this);
         addClient(socketClient);
         return true;
@@ -61,13 +62,10 @@ public class ServerGame extends Game {
         return this.socketUUIDs.containsKey(socketUUID);
     }
 
-    public SocketClient getSocketClient(String uuid) {
-        for (GameClient client : this.clients.values()) {
-            if (client instanceof SocketClient)
-                if (((SocketClient) client).socketUUID.equals(uuid))
-                    return (SocketClient) client;
-        }
-        return null;
+    public SocketClient getSocketClient(String socketUUID) {
+        var player_ID = this.socketUUIDs.get(socketUUID);
+        var socketClient = this.clients.get(player_ID);
+        return (SocketClient) socketClient;
     }
 
     public ArrayList<Integer> getPlayerIDs() {

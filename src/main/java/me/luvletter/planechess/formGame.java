@@ -136,7 +136,7 @@ public class formGame {
 
         this.gui = new JFrame();
 
-        this.gui.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+        this.gui.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         this.gui.setSize(900, 750);
         this.gui.setContentPane(this.panel_Main);
         this.gui.addWindowListener(new WindowAdapter() {
@@ -144,18 +144,19 @@ public class formGame {
             public void windowClosing(WindowEvent e) {
                 if (!isWin) {
                     if (JOptionPane.showConfirmDialog(gui,
-                            "Are you sure you want to quit game?", "Close Window?",
+                            "Are you sure to quit game?", "Close Window?",
                             JOptionPane.YES_NO_OPTION,
-                            JOptionPane.QUESTION_MESSAGE) != JOptionPane.YES_OPTION) {
+                            JOptionPane.QUESTION_MESSAGE) == JOptionPane.NO_OPTION) {
                         return;
                     }
                 }
                 // accept to quit
                 if (onClose != null) {
                     onClose.run();
-                    gui.setVisible(false);
-                    gui.dispose();
                 }
+                System.out.println("Close Window");
+                gui.setVisible(false);
+                gui.dispose();
             }
         });
     }

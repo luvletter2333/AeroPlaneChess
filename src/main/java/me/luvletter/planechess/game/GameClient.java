@@ -6,15 +6,25 @@ import java.util.HashSet;
 public abstract class GameClient {
 
     public final int player_id;
+    private String name;
     protected IGame game;
 
     public GameClient(int player_id) {
         this.player_id = player_id;
+        this.name = PlayerColor.getFriendString(player_id);
     }
 
     public GameClient bindGame(IGame game) {
         this.game = game;
         return this;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 
     public abstract boolean isReady();

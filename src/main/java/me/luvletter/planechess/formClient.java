@@ -211,6 +211,10 @@ public class formClient {
         this.formGame.bindGame(new RemoteGame(webSocketClient));
         this.formGame.setTitle(this.serverName + " - " + room_name);
         this.formGame.showWindow();
+        this.formGame.setOnClose(() -> {
+            // TODO: onClose
+            this.networkClient.sendData("{\"action\":\"quit_game\"}");
+        });
         return this.localClient;
     }
 }

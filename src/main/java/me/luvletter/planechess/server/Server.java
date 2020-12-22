@@ -59,6 +59,7 @@ public class Server extends WebSocketServer {
             String socketUUID = webSocket.getAttachment();
             log(socketUUID + " Disconnected From" + webSocket.getRemoteSocketAddress());
             clientUUIDs.remove(socketUUID);
+
             if (socketUUID != null) {
                 var lst = this.games.values().stream().filter(_sG -> _sG.containSocket(socketUUID)).collect(Collectors.toList());
                 if (lst.size() > 0) {
@@ -173,7 +174,7 @@ public class Server extends WebSocketServer {
                     webSocket.send(BAD_REQUEST);
                     return;
                 }
-                game.attachClientSocket(webSocket, player_id);
+                game.attachClientSocket(webSocket, player_id, webSocket.getAttachment());
                 game.tryStartGame();
                 ret.put("status", 200);
                 ret.put("action", "join_game");
