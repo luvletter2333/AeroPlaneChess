@@ -166,3 +166,9 @@ forceDice 2 1
 cheatDice 1 6 5 2 3 2 
 battle 11 3
 
+## Win
+
+forceMoveTo 11 118
+forceMoveTo 12 117
+forceMoveTo 13 116
+forceMoveTo 14 115
