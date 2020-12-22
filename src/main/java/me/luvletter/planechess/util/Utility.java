@@ -28,7 +28,7 @@ public class Utility {
      * @return 104, 205, etc. -1 means out of bound.
      */
     public static int calculateDestPos(int player_id, int fromPos, int step) {
-        if (fromPos % 100 >= 13) {
+        if (fromPos % 100 >= 13 && fromPos / 100 == player_id) {
             int pos_id = fromPos % 100;
             if (pos_id + step > 19)
                 return -1;
@@ -90,7 +90,7 @@ public class Utility {
         return ret;
     }
 
-    public static String generateUUID(){
+    public static String generateUUID() {
         return UUID.randomUUID().toString();
     }
 }

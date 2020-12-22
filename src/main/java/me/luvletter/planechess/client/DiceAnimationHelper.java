@@ -33,7 +33,7 @@ public class DiceAnimationHelper {
     }
 
     public static void diceAnimate(Drawable_JPanel dpanel_Dice, int dice_result, int dice_round) {
-
+        
         sleep(150);
         for (int i = 1; i < 9; i++) { // Animation loop
             dpanel_Dice.Draw(getAnimationImage(i));
