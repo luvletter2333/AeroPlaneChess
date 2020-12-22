@@ -18,7 +18,7 @@ public enum EventType {
     GameTakeOff,
     GameBattle,
     GameAnnounceStart,
-    GameStop
+    EndThreadEvent
 
 
 }

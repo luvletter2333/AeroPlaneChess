@@ -2,6 +2,7 @@ package me.luvletter.planechess.game;
 
 import me.luvletter.planechess.Main;
 import me.luvletter.planechess.client.PositionList;
+import me.luvletter.planechess.event.EndThreadEvent;
 import me.luvletter.planechess.event.Event;
 import me.luvletter.planechess.event.EventManager;
 import me.luvletter.planechess.event.gameevents.*;
@@ -84,6 +85,9 @@ public class Game implements IGame {
                                 _battle(be.planeID, be.step);
                             }
                             case GameAnnounceStart -> _announceStart();
+                            case EndThreadEvent -> {
+                                return;
+                            }
                         }
                     } catch (Exception e) {
                         e.printStackTrace();
@@ -535,8 +539,11 @@ public class Game implements IGame {
         var cbs = getChessboardStatus();
         clients.values().forEach(c -> c.UpdateClientChessBoard(cbs, movement, backPlane, false, false));
         // TODO: Remove isSkipped
-        if (this.has_won)
+        if (this.has_won) {
             this.clients.values().forEach(c -> c.AnnounceWin(this.win_player_id));
+            this.gameEventManager.clearEvents();
+            this.gameEventManager.push(new EndThreadEvent());
+        }
     }
 
     private void nextLoop() {

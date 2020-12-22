@@ -19,7 +19,8 @@ import me.luvletter.planechess.client.previewing.MovePreviewAction;
 import me.luvletter.planechess.client.previewing.PreviewAction;
 import me.luvletter.planechess.client.previewing.PreviewType;
 import me.luvletter.planechess.client.previewing.TakeOffPreviewAction;
-import me.luvletter.planechess.event.BattleResultEvent;
+import me.luvletter.planechess.event.clientevents.BattleResultEvent;
+import me.luvletter.planechess.event.EndThreadEvent;
 import me.luvletter.planechess.event.EventManager;
 import me.luvletter.planechess.event.clientevents.*;
 import me.luvletter.planechess.game.*;
@@ -124,7 +125,10 @@ public class formGame {
                         case UpdateChessboard -> update_chessboard((UpdateChessboardEvent) e);
                         case Preview -> preview((PreviewEvent) e);
                         case BattleResult -> showBattleResult((BattleResultEvent) e);
-//                        case DiceAnimation -> dice_Animation((DiceAnimationEvent) e);
+                        case AnnounceWin -> handleGameWin((AnnounceWinEvent) e);
+                        case EndThreadEvent -> {
+                            break;
+                        }
                     }
                     sleep(50);
                 } catch (Exception ex) {
@@ -136,7 +140,7 @@ public class formGame {
 
         this.gui = new JFrame();
 
-        this.gui.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        this.gui.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
         this.gui.setSize(900, 750);
         this.gui.setContentPane(this.panel_Main);
         this.gui.addWindowListener(new WindowAdapter() {
@@ -157,8 +161,16 @@ public class formGame {
                 System.out.println("Close Window");
                 gui.setVisible(false);
                 gui.dispose();
+                eventManager.clearEvents();
+                eventManager.push(new EndThreadEvent());
             }
         });
+    }
+
+    private void handleGameWin(AnnounceWinEvent e) {
+        int winnerID = e.winner_id;
+        JOptionPane.showMessageDialog(null, PlayerColor.getFriendString(winnerID) + " has won this Game!");
+
     }
 
     public void setTitle(String title) {

@@ -1,6 +1,6 @@
 package me.luvletter.planechess.server;
 
-import me.luvletter.planechess.event.gameevents.StopEvent;
+import me.luvletter.planechess.event.EndThreadEvent;
 import me.luvletter.planechess.game.AIClient;
 import me.luvletter.planechess.game.DummyAIClient;
 import me.luvletter.planechess.game.GameClient;
@@ -107,6 +107,7 @@ public class ServerGame extends Game {
     }
 
     public void stop() {
-        this.gameEventManager.push(new StopEvent());
+        this.gameEventManager.clearEvents();
+        this.gameEventManager.push(new EndThreadEvent());
     }
 }

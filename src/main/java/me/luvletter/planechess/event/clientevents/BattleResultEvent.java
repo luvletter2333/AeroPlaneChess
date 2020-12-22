@@ -1,5 +1,7 @@
-package me.luvletter.planechess.event;
+package me.luvletter.planechess.event.clientevents;
 
+import me.luvletter.planechess.event.Event;
+import me.luvletter.planechess.event.EventType;
 import me.luvletter.planechess.game.Battle;
 import me.luvletter.planechess.game.ChessBoardStatus;
 

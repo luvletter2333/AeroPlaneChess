@@ -1,6 +1,6 @@
 package me.luvletter.planechess.game;
 
-import me.luvletter.planechess.event.BattleResultEvent;
+import me.luvletter.planechess.event.clientevents.BattleResultEvent;
 import me.luvletter.planechess.event.EventManager;
 import me.luvletter.planechess.event.clientevents.*;
 

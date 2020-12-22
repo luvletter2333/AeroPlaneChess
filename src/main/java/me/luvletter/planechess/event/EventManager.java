@@ -7,11 +7,11 @@ import java.util.concurrent.LinkedBlockingQueue;
 public class EventManager {
     private BlockingQueue<Event> blockingQueue;
 
-    public EventManager(){
+    public EventManager() {
         this.blockingQueue = new LinkedBlockingQueue<>(25);
     }
 
-    public void push(Event e){
+    public void push(Event e) {
         try {
             blockingQueue.put(e);
         } catch (InterruptedException interruptedException) {
@@ -19,7 +19,7 @@ public class EventManager {
         }
     }
 
-    public Event get(){
+    public Event get() {
         try {
             return blockingQueue.take();
         } catch (InterruptedException e) {
@@ -28,8 +28,11 @@ public class EventManager {
         }
     }
 
-    public int size()
-    {
+    public void clearEvents() {
+        this.blockingQueue.clear();
+    }
+
+    public int size() {
         return this.blockingQueue.size();
     }
 }
