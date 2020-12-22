@@ -1,6 +1,4 @@
-package me.luvletter.planechess.client;
-
-import me.luvletter.planechess.model.PlayerColor;
+package me.luvletter.planechess.model;
 
 // Block on chessboard
 public final class Position {

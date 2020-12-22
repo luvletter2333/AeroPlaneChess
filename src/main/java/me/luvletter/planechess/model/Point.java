@@ -1,4 +1,4 @@
-package me.luvletter.planechess.client;
+package me.luvletter.planechess.model;
 
 public class Point {
     public final int X;

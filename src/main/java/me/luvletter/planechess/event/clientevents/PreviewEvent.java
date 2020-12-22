@@ -1,6 +1,6 @@
 package me.luvletter.planechess.event.clientevents;
 
-import me.luvletter.planechess.client.Point;
+import me.luvletter.planechess.model.Point;
 import me.luvletter.planechess.event.Event;
 import me.luvletter.planechess.event.EventType;
 

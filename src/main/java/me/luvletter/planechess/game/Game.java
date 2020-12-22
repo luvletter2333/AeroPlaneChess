@@ -3,7 +3,7 @@ package me.luvletter.planechess.game;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import me.luvletter.planechess.Main;
-import me.luvletter.planechess.client.PositionList;
+import me.luvletter.planechess.model.PositionList;
 import me.luvletter.planechess.event.EndThreadEvent;
 import me.luvletter.planechess.event.Event;
 import me.luvletter.planechess.event.EventManager;

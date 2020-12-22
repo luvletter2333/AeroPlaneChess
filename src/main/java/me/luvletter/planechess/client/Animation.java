@@ -1,8 +1,7 @@
 package me.luvletter.planechess.client;
 
-import me.luvletter.planechess.model.ChessBoardStatus;
-import me.luvletter.planechess.model.Movement;
-import me.luvletter.planechess.model.PlaneStack;
+import me.luvletter.planechess.model.*;
+import me.luvletter.planechess.model.Point;
 import me.luvletter.planechess.util.Utility;
 
 import java.awt.*;
@@ -59,10 +58,10 @@ public class Animation {
         var plane_img = Resource.getPlaneImage(movement.planeID / 10);
         var stack = getStackerPlanesOrGenerate(this.status.getStacks(), this.movement.planeID);
         if (this.movement.startPos % 100 == 99) {   // from hanger
-            Point start_point = PositionList.all.containsKey(this.movement.startPos) ?
+            me.luvletter.planechess.model.Point start_point = PositionList.all.containsKey(this.movement.startPos) ?
                     PositionList.all.get(this.movement.startPos).Point :
                     DrawHelper.HangerPoints.get(this.movement.planeID);
-            Point end_point = PositionList.all.containsKey(this.movement.endPos) ?
+            me.luvletter.planechess.model.Point end_point = PositionList.all.containsKey(this.movement.endPos) ?
                     PositionList.all.get(this.movement.endPos).Point :
                     DrawHelper.HangerPoints.get(this.movement.planeID);
             smallAnimation(this.baseImage, plane_img, stack,
@@ -213,8 +212,8 @@ public class Animation {
             }
             // draw start -> keyPos this path
             if (isFlyingPoint(startPos)) { // Handle Flying
-                Point start_point = PositionList.all.get(startPos).Point;
-                Point targetPoint = PositionList.all.get(endPos).Point;
+                me.luvletter.planechess.model.Point start_point = PositionList.all.get(startPos).Point;
+                me.luvletter.planechess.model.Point targetPoint = PositionList.all.get(endPos).Point;
                 smallAnimation(base_image, plane_img, stack, start_point, targetPoint, dpanel);
             } else {
                 int start_index = PositionList.safeIndexOfCircleBoard(startPos, this.movement.planeID / 10);
@@ -223,10 +222,10 @@ public class Animation {
                 // change start_point to the one in front of runway
                 // index -> in the circle
                 int end_index = PositionList.circleBoard.indexOf(nextPos);
-                Point start_point = PositionList.all.get(startPos).Point;
+                me.luvletter.planechess.model.Point start_point = PositionList.all.get(startPos).Point;
 
                 for (int i = nextIndex(start_index); i != nextIndex(end_index); i = nextIndex(i)) {
-                    Point targetPoint = PositionList.all.get(PositionList.circleBoard.get(i)).Point;
+                    me.luvletter.planechess.model.Point targetPoint = PositionList.all.get(PositionList.circleBoard.get(i)).Point;
                     smallAnimation(base_image, plane_img, stack, start_point, targetPoint, dpanel);
                     start_point = targetPoint;
                 }
@@ -285,10 +284,10 @@ public class Animation {
     }
 
     private class AnimationMovement {
-        public final Point startPoint;
-        public final Point endPoint;
+        public final me.luvletter.planechess.model.Point startPoint;
+        public final me.luvletter.planechess.model.Point endPoint;
 
-        public AnimationMovement(Point startPoint, Point endPoint) {
+        public AnimationMovement(me.luvletter.planechess.model.Point startPoint, me.luvletter.planechess.model.Point endPoint) {
             this.startPoint = startPoint;
             this.endPoint = endPoint;
         }
@@ -337,12 +336,12 @@ public class Animation {
     private static final double STEP = 50;
     private static final int SLEEP_TIME = 10;
 
-    public static BufferedImage smallAnimation(BufferedImage back, BufferedImage plane_img, List<Integer> stack, Point start_point, Point end_point, Drawable_JPanel dpanel) {
+    public static BufferedImage smallAnimation(BufferedImage back, BufferedImage plane_img, List<Integer> stack, me.luvletter.planechess.model.Point start_point, me.luvletter.planechess.model.Point end_point, Drawable_JPanel dpanel) {
         for (int i = 1; i <= STEP; i++) {
             final BufferedImage animate_img = Resource.copyImage(back);
             Graphics g = animate_img.getGraphics();
             DrawHelper.drawPlane(g,
-                    new Point(start_point.X + (end_point.X - start_point.X) * (i / STEP),
+                    new me.luvletter.planechess.model.Point(start_point.X + (end_point.X - start_point.X) * (i / STEP),
                             start_point.Y + (end_point.Y - start_point.Y) * (i / STEP)),
                     plane_img, stack);
             dpanel.Draw(animate_img);
@@ -354,7 +353,7 @@ public class Animation {
         return endImg;
     }
 
-    private static void smallAnimation(BufferedImage back, BufferedImage plane_img, HashSet<Integer> stack, Point start_point, Point end_point, Drawable_JPanel dpanel) {
+    private static void smallAnimation(BufferedImage back, BufferedImage plane_img, HashSet<Integer> stack, me.luvletter.planechess.model.Point start_point, me.luvletter.planechess.model.Point end_point, Drawable_JPanel dpanel) {
         smallAnimation(back, plane_img, new ArrayList<>(stack), start_point, end_point, dpanel);
     }
 
@@ -366,7 +365,7 @@ public class Animation {
             for (int pid : planes.keySet()) {
                 AnimationMovement animationMovement = planes.get(pid);
                 DrawHelper.drawPlane(g,
-                        new Point(animationMovement.startPoint.X + (animationMovement.endPoint.X - animationMovement.startPoint.X) * (i / STEP),
+                        new me.luvletter.planechess.model.Point(animationMovement.startPoint.X + (animationMovement.endPoint.X - animationMovement.startPoint.X) * (i / STEP),
                                 animationMovement.startPoint.Y + (animationMovement.endPoint.Y - animationMovement.startPoint.Y) * (i / STEP)),
                         Resource.getPlaneImage(pid / 10), pid);
             }

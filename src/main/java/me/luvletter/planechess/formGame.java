@@ -11,7 +11,7 @@ import java.util.ArrayList;
 import java.util.stream.Collectors;
 
 import me.luvletter.planechess.client.*;
-import me.luvletter.planechess.client.Point;
+import me.luvletter.planechess.model.Point;
 import me.luvletter.planechess.client.previewing.MovePreviewAction;
 import me.luvletter.planechess.client.previewing.PreviewAction;
 import me.luvletter.planechess.client.previewing.PreviewType;
@@ -129,7 +129,7 @@ public class formGame {
                         case BattleResult -> showBattleResult((BattleResultEvent) e);
                         case AnnounceWin -> handleGameWin((AnnounceWinEvent) e);
                         case EndThreadEvent -> {
-                            break;
+                            return;
                         }
                     }
                     sleep(50);
@@ -171,6 +171,7 @@ public class formGame {
             @Override
             public void mouseClicked(MouseEvent e) {
                 super.mouseClicked(e);
+                if(localClient)
             }
         });
         btn_load.addMouseListener(new MouseAdapter() {

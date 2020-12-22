@@ -1,21 +1,22 @@
 package me.luvletter.planechess.client;
 
 import me.luvletter.planechess.model.PlayerColor;
+import me.luvletter.planechess.model.Position;
 
 import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static me.luvletter.planechess.client.PositionList.*;
+import static me.luvletter.planechess.model.PositionList.*;
 
 public class ChessBoardClickHelper {
 
-    public static Point getPointfromMouseEvent(MouseEvent me) {
-        return new Point(me.getX(), me.getY());
+    public static me.luvletter.planechess.model.Point getPointfromMouseEvent(MouseEvent me) {
+        return new me.luvletter.planechess.model.Point(me.getX(), me.getY());
     }
 
-    private static double Sqdistance(Point A, Point B) {
+    private static double Sqdistance(me.luvletter.planechess.model.Point A, me.luvletter.planechess.model.Point B) {
         return java.awt.Point.distanceSq(A.X, A.Y, B.X, B.Y);
     }
 
@@ -46,7 +47,7 @@ public class ChessBoardClickHelper {
         return null;
     }
 
-    public static Position matchPositionfromPoint(Point p) {
+    public static Position matchPositionfromPoint(me.luvletter.planechess.model.Point p) {
         int click_RGB = Resource.getResource(ResourceType.ChessBoard).getRGB(p.X, p.Y);
         var mat = matchColor(click_RGB);
         Collection<Position> ps;
