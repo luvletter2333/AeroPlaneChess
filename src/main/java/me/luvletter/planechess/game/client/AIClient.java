@@ -1,5 +1,6 @@
 package me.luvletter.planechess.game.client;
 
+import me.luvletter.planechess.game.IGame;
 import me.luvletter.planechess.model.Battle;
 import me.luvletter.planechess.model.ChessBoardStatus;
 import me.luvletter.planechess.model.DiceType;
@@ -8,8 +9,8 @@ import me.luvletter.planechess.model.Movement;
 import java.util.HashSet;
 
 public class AIClient extends GameClient {
-    public AIClient(int player_id) {
-        super(player_id);
+    public AIClient(int player_id, IGame game) {
+        super(player_id, game);
     }
 
     @Override

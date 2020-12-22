@@ -38,7 +38,6 @@ public class formClient {
     private boolean isInGame = false;
     private boolean isConnecting = false;
     private formGame formGame;
-    private LocalClient localClient;
     private String serverName = "Test";
     private Timer timer;
 
@@ -202,16 +201,16 @@ public class formClient {
     }
 
     public LocalClient startGame(int player_id, String room_name, WebSocketClient webSocketClient) {
-        this.localClient = new LocalClient(player_id);
         //     this.localClient.bindGame()
-        this.formGame = new formGame(this.localClient, this.localClient.getClientEventManager());
-        this.formGame.bindGame(new RemoteGame(webSocketClient));
+        var remoteGame = new RemoteGame(webSocketClient);
+        var localClient = new LocalClient(player_id, remoteGame);
+        this.formGame = new formGame(localClient, localClient.getClientEventManager());
         this.formGame.setTitle(this.serverName + " - " + room_name);
         this.formGame.showWindow();
         this.formGame.setOnClose(() -> {
             this.networkClient.sendData("{\"action\":\"quit_game\"}");
         });
-        return this.localClient;
+        return localClient;
     }
 }
 

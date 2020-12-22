@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONException;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.serializer.SerializerFeature;
+import me.luvletter.planechess.game.IGame;
 import me.luvletter.planechess.game.client.GameClient;
 import me.luvletter.planechess.model.Battle;
 import me.luvletter.planechess.model.ChessBoardStatus;
@@ -18,8 +19,8 @@ public class SocketClient extends GameClient {
     public final String socketUUID;
     private final WebSocket webSocket;
 
-    public SocketClient(int player_id, WebSocket webSocket) {
-        super(player_id);
+    public SocketClient(int player_id, WebSocket webSocket, IGame game) {
+        super(player_id, game);
         this.socketUUID = webSocket.getAttachment();
         this.webSocket = webSocket;
     }

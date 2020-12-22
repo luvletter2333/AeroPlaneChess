@@ -5,8 +5,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.stream.Collectors;
 
@@ -69,7 +68,7 @@ public class formGame {
 
     private final Object board_drawing_lock = new Object(); // Main Canvas Drawing Lock
 
-    private GameClient localClient;
+    private LocalClient localClient;
     private final int playerID;
 
     private EventManager eventManager;
@@ -171,13 +170,67 @@ public class formGame {
             @Override
             public void mouseClicked(MouseEvent e) {
                 super.mouseClicked(e);
-                if(localClient)
+                if (localClient.getGame() instanceof RemoteGame) {
+                    // online mode
+                    // TODO: saveGame in Online Mode
+                } else {
+                    // local mode
+                    JFileChooser chooser = new JFileChooser();
+                    int value = chooser.showSaveDialog(formGame.this.gui);
+                    File newFile;
+                    FileWriter fw;
+                    if (value == JFileChooser.APPROVE_OPTION) {
+                        String ret = localClient.getGame().saveGame();
+                        try {
+                            newFile = chooser.getSelectedFile();
+
+                            fw = new FileWriter(newFile);
+                            fw.write(ret);
+                            fw.flush();
+                            fw.close();
+                        } catch (IOException e1) {
+                            e1.printStackTrace();
+                        }
+                    }
+                }
             }
         });
         btn_load.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
                 super.mouseClicked(e);
+                if (localClient.getGame() instanceof RemoteGame) {
+                    // online mode
+                    // TODO: Load Game in Online Mode
+                } else {
+                    // local mode
+                    JFileChooser chooser = new JFileChooser();
+                    int value = chooser.showSaveDialog(formGame.this.gui);
+
+                    if (value == JFileChooser.APPROVE_OPTION) {
+                        try {
+                            var newFile = chooser.getSelectedFile();
+                            if (!newFile.exists())
+                                return;
+                            var br = new BufferedReader(new FileReader(newFile));
+                            StringBuilder sb = new StringBuilder();
+                            String str;
+                            while ((str = br.readLine()) != null) {
+                                sb.append(str);
+                                sb.append("\n");
+                            }
+                            String result = sb.toString();
+                            Game game = (Game) localClient.getGame();
+                            game.loadGame(result);
+                            int player_id = Integer.parseInt(JOptionPane.showInputDialog("Your playerID:"));
+                            game.addClient(localClient);
+                            if (game.canStart())
+                                game.announceStart();
+                        } catch (IOException e1) {
+                            e1.printStackTrace();
+                        }
+                    }
+                }
             }
         });
     }
@@ -198,10 +251,6 @@ public class formGame {
 
     public void showWindow() {
         this.gui.setVisible(true);
-    }
-
-    public void bindGame(IGame game) {
-        this.localClient.bindGame(game);
     }
 
     // Events

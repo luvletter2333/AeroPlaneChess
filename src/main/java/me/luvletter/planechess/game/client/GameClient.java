@@ -10,17 +10,14 @@ public abstract class GameClient {
 
     public final int player_id;
     private String name;
-    protected IGame game;
+    protected final IGame game;
 
-    public GameClient(int player_id) {
+    public GameClient(int player_id, IGame game) {
         this.player_id = player_id;
         this.name = PlayerColor.getFriendString(player_id);
+        this.game = game;
     }
 
-    public GameClient bindGame(IGame game) {
-        this.game = game;
-        return this;
-    }
 
     public String getName() {
         return name;
@@ -56,7 +53,7 @@ public abstract class GameClient {
         this.game.skip(this.player_id);
     }
 
-    public void battle(int planeID, int step){
+    public void battle(int planeID, int step) {
         this.game.battle(planeID, step);
     }
 

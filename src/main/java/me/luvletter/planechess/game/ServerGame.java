@@ -15,7 +15,7 @@ import java.util.stream.Collectors;
 
 /**
  * Game in serverside
- * */
+ */
 public class ServerGame extends Game {
     public final String UUID;
     public final String RoomName;
@@ -29,7 +29,7 @@ public class ServerGame extends Game {
         var ai = new ArrayList<>(player_ids);
         ai.removeAll(realPlayerIDs);
         for (int AI_id : ai) {
-            this.addClient(new AIClient(AI_id).bindGame(this));
+            this.addClient(new AIClient(AI_id, this));
         }
     }
 
@@ -47,9 +47,8 @@ public class ServerGame extends Game {
             return false;
         if (socketUUIDs.containsKey(webSocket.getAttachment()))
             return false;
-        GameClient socketClient = new SocketClient(playerID, webSocket);
+        GameClient socketClient = new SocketClient(playerID, webSocket, this);
         this.socketUUIDs.put(socketUUID, playerID);
-        socketClient.bindGame(this);
         addClient(socketClient);
         return true;
     }
@@ -99,7 +98,7 @@ public class ServerGame extends Game {
      */
     public synchronized boolean socketDisconnect(String socketUUID) {
         Integer player_id = this.socketUUIDs.get(socketUUID);
-        var dummyAI = new DummyAIClient(player_id);
+        var dummyAI = new DummyAIClient(player_id, this);
         this.clients.put(player_id, dummyAI);
         // in ServerGame, there are only three types of Clients: AIClient DummyAIClient and SocketClient
         return this.clients.values().stream().anyMatch(gameClient -> gameClient instanceof SocketClient);

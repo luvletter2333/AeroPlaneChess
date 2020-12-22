@@ -41,12 +41,11 @@ public class Main {
 
         var game = new Game(4, tmp_player_list);
 
-        var client = new LocalClient(1);
+        var client = new LocalClient(1, game);
         game.addClient(client);
-        client.bindGame(game);
-        game.addClient(new AIClient(2).bindGame(game));
-        game.addClient(new AIClient(3).bindGame(game));
-        game.addClient(new AIClient(4).bindGame(game));
+        game.addClient(new AIClient(2, game));
+        game.addClient(new AIClient(3, game));
+        game.addClient(new AIClient(4, game));
 
         var form = new formGame(client, client.getClientEventManager());
         var gui = new JFrame("Test App");

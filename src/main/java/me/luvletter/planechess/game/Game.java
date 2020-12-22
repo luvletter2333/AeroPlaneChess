@@ -118,7 +118,6 @@ public class Game implements IGame {
         if (!player_ids.contains(client.player_id))
             return;
         this.clients.put(client.player_id, client);
-        //client.bindGame(this);
     }
 
     public void announceStart() {
@@ -290,7 +289,7 @@ public class Game implements IGame {
         winner_remain_stack.forEach(remain_pid -> this.planePosition.put(remain_pid, destPos));
     }
 
-    protected boolean canStart() {
+    public boolean canStart() {
         return this.clients.size() == this.Player_Count;
     }
 
@@ -604,17 +603,32 @@ public class Game implements IGame {
             JSONObject obj = JSON.parseObject(json);
             this.Player_Count = obj.getIntValue("Player_Count");
             this.player_ids = obj.getJSONArray("player_ids").toJavaList(Integer.class);
-            this.planePosition = (Map<Integer, Integer>) obj.getJSONObject("planePosition").toJavaObject(Map.class);
+            this.planePosition = new HashMap<Integer, Integer>();
+            for (String pid : obj.getJSONObject("planePosition").keySet()) {
+                Integer pos = obj.getJSONObject("planePosition").getInteger(pid);
+                this.planePosition.put(Integer.parseInt(pid), pos);
+            }
             this.planeStacks = obj.getJSONArray("planeStacks").toJavaList(PlaneStack.class);
             this.dice_player_id = obj.getIntValue("dice_player_id");
             this.dice_first_result = obj.getIntValue("dice_first_result");
             this.dice_second_result = obj.getIntValue("dice_second_result");
             this.dice_moved = obj.getBooleanValue("dice_moved");
-            this.cheatDice = new ArrayDeque<>(obj.getJSONArray("dice_first_result").toJavaList(Integer.class));
+            this.cheatDice = new ArrayDeque<>(obj.getJSONArray("cheatDice").toJavaList(Integer.class));
+            obj.getJSONArray("AIClients").stream().forEach(pid -> this.addClient(new AIClient((Integer) pid,this)));
+            this.clients = new HashMap<>();
+            var AI = obj.getJSONArray("AIClients").toJavaList(Integer.class);
+            for (Integer playerID : AI) {
+                clients.put(playerID, new AIClient(playerID, this));
+            }
+            var DummyAI = obj.getJSONArray("DummyAIClients").toJavaList(Integer.class);
+            for (Integer playerID : DummyAI) {
+                clients.put(playerID, new DummyAIClient(playerID, this));
+            }
         } catch (Exception e) {
             e.printStackTrace();
             return false;
         }
+        // load successfully
         return true;
     }
 

@@ -3,6 +3,7 @@ package me.luvletter.planechess.game.client;
 import me.luvletter.planechess.event.clientevents.BattleResultEvent;
 import me.luvletter.planechess.event.EventManager;
 import me.luvletter.planechess.event.clientevents.*;
+import me.luvletter.planechess.game.IGame;
 import me.luvletter.planechess.model.Battle;
 import me.luvletter.planechess.model.ChessBoardStatus;
 import me.luvletter.planechess.model.DiceType;
@@ -14,8 +15,8 @@ public class LocalClient extends GameClient {
 
     private final EventManager clientEventManager;
 
-    public LocalClient(int player_id) {
-        super(player_id);
+    public LocalClient(int player_id, IGame game) {
+        super(player_id, game);
         clientEventManager = new EventManager();
     }
 
