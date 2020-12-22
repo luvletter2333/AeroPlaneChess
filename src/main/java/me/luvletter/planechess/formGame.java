@@ -351,6 +351,7 @@ public class formGame {
             if (dice_second_result % dice_first_result == 0)
                 possibleMove.add(dice_second_result / dice_first_result);
             possibleMove.removeIf(pM -> pM > 12);
+            possibleMove.removeIf(pM -> calculateDestPos(this.playerID, matchPos.ID, pM) == -1);
             int rep = clickPlanesList.get(0);
             var previewImg = Resource.copyImage(this.lastImgae);
             possibleMove.forEach(psMove ->
