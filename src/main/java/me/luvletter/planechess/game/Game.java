@@ -535,8 +535,8 @@ public class Game implements IGame {
         var cbs = getChessboardStatus();
         clients.values().forEach(c -> c.UpdateClientChessBoard(cbs, movement, backPlane, false, false));
         // TODO: Remove isSkipped
-        System.out.println("updateClients");
-        // TODO: DEBUG
+        if (this.has_won)
+            this.clients.values().forEach(c -> c.AnnounceWin(this.win_player_id));
     }
 
     private void nextLoop() {
