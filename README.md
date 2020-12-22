@@ -17,7 +17,3 @@
 
 -  ~~Bonus Dice~~
 - 
-
-forceMoveTo 21 212
-forceMoveTo 11 102
-battle 11 1 true
