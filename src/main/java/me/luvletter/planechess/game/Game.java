@@ -540,6 +540,8 @@ public class Game implements IGame {
     }
 
     private void nextLoop() {
+        if (has_won)
+            return;
         int next_player = this.player_ids.get((this.player_ids.indexOf(this.dice_player_id) + 1) % this.Player_Count);
         System.out.println("[Game] next Player: " + next_player);
         int dice_result = rolling_Dice(next_player);
