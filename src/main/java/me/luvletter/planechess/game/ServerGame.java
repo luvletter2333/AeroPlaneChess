@@ -1,10 +1,11 @@
-package me.luvletter.planechess.server;
+package me.luvletter.planechess.game;
 
 import me.luvletter.planechess.event.EndThreadEvent;
-import me.luvletter.planechess.game.AIClient;
-import me.luvletter.planechess.game.DummyAIClient;
-import me.luvletter.planechess.game.GameClient;
+import me.luvletter.planechess.game.client.AIClient;
+import me.luvletter.planechess.game.client.DummyAIClient;
+import me.luvletter.planechess.game.client.GameClient;
 import me.luvletter.planechess.game.Game;
+import me.luvletter.planechess.server.SocketClient;
 import org.java_websocket.WebSocket;
 
 import java.util.ArrayList;
@@ -12,6 +13,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * Game in serverside
+ * */
 public class ServerGame extends Game {
     public final String UUID;
     public final String RoomName;
@@ -68,7 +72,7 @@ public class ServerGame extends Game {
         return (SocketClient) socketClient;
     }
 
-    public ArrayList<Integer> getPlayerIDs() {
+    public List<Integer> getPlayerIDs() {
         return this.player_ids;
     }
 
@@ -110,4 +114,5 @@ public class ServerGame extends Game {
         this.gameEventManager.clearEvents();
         this.gameEventManager.push(new EndThreadEvent());
     }
+
 }

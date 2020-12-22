@@ -1,8 +1,8 @@
 package me.luvletter.planechess;
 
-import me.luvletter.planechess.game.AIClient;
+import me.luvletter.planechess.game.client.AIClient;
 import me.luvletter.planechess.game.Game;
-import me.luvletter.planechess.game.LocalClient;
+import me.luvletter.planechess.game.client.LocalClient;
 
 import javax.swing.*;
 import java.util.*;

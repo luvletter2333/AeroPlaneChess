@@ -2,7 +2,7 @@ package me.luvletter.planechess.event.clientevents;
 
 import me.luvletter.planechess.event.Event;
 import me.luvletter.planechess.event.EventType;
-import me.luvletter.planechess.game.DiceType;
+import me.luvletter.planechess.model.DiceType;
 
 public final class ShowOtherDiceEvent extends Event {
     public final int playerID;

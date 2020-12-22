@@ -1,4 +1,4 @@
-package me.luvletter.planechess.game;
+package me.luvletter.planechess.model;
 
 import java.util.ArrayList;
 import java.util.List;

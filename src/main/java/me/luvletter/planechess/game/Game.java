@@ -1,11 +1,17 @@
 package me.luvletter.planechess.game;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import me.luvletter.planechess.Main;
 import me.luvletter.planechess.client.PositionList;
 import me.luvletter.planechess.event.EndThreadEvent;
 import me.luvletter.planechess.event.Event;
 import me.luvletter.planechess.event.EventManager;
 import me.luvletter.planechess.event.gameevents.*;
+import me.luvletter.planechess.game.client.AIClient;
+import me.luvletter.planechess.game.client.DummyAIClient;
+import me.luvletter.planechess.game.client.GameClient;
+import me.luvletter.planechess.model.*;
 
 import java.security.SecureRandom;
 import java.util.*;
@@ -15,14 +21,14 @@ import static me.luvletter.planechess.util.Utility.*;
 
 public class Game implements IGame {
 
-    public final int Player_Count;
-    protected final ArrayList<Integer> player_ids;
+    public int Player_Count;
+    protected List<Integer> player_ids;
     /**
      * Key -> plane ID
      * Value -> Position ID, such as 102 302
      */
-    private HashMap<Integer, Integer> planePosition;
-    private ArrayList<PlaneStack> planeStacks;
+    private Map<Integer, Integer> planePosition;
+    private List<PlaneStack> planeStacks;
 
     // Dice related:
     private int dice_player_id;
@@ -64,47 +70,55 @@ public class Game implements IGame {
         this.clients = new HashMap<>(4);
 
         this.gameEventManager = new EventManager();
-        this.gameThread = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                while (true) {
-                    try {
-                        Event e = gameEventManager.get();
-                        System.out.println("[Game Event]" + e);
-                        switch (e.getType()) {
-                            case GameMove -> {
-                                MoveEvent me = (MoveEvent) e;
-                                _move(me.plane_id, me.step, me.go_stack);
-                            }
-                            case GameSkip -> {
-                                _skip(((SkipEvent) e).playerID);
-                            }
-                            case GameTakeOff -> _takeOff(((TakeOffEvent) e).playerID);
-                            case GameBattle -> {
-                                BattleEvent be = (BattleEvent) e;
-                                _battle(be.planeID, be.step);
-                            }
-                            case GameAnnounceStart -> _announceStart();
-                            case EndThreadEvent -> {
-                                return;
-                            }
-                        }
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                }
-            }
-        });
+        this.gameThread = new Thread(this::processThread);
         this.gameThread.start();
     }
 
+    public Game() {
+        this.dice_random = new SecureRandom();
+        this.gameThread = new Thread(this::processThread);
+        this.gameEventManager = new EventManager();
+        this.clients = new HashMap<>();
+    }
+
+    public void processThread() {
+        while (true) {
+            try {
+                Event e = gameEventManager.get();
+                System.out.println("[Game Event]" + e);
+                switch (e.getType()) {
+                    case GameMove -> {
+                        MoveEvent me = (MoveEvent) e;
+                        _move(me.plane_id, me.step, me.go_stack);
+                    }
+                    case GameSkip -> {
+                        _skip(((SkipEvent) e).playerID);
+                    }
+                    case GameTakeOff -> _takeOff(((TakeOffEvent) e).playerID);
+                    case GameBattle -> {
+                        BattleEvent be = (BattleEvent) e;
+                        _battle(be.planeID, be.step);
+                    }
+                    case GameAnnounceStart -> _announceStart();
+                    case EndThreadEvent -> {
+                        return;
+                    }
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+
     /**
-     * add Client, and automatically bind Game
+     * add Client, ~~and automatically bind Game~~
      */
     public void addClient(GameClient client) {
         if (!player_ids.contains(client.player_id))
             return;
         this.clients.put(client.player_id, client);
+        //client.bindGame(this);
     }
 
     public void announceStart() {
@@ -556,6 +570,52 @@ public class Game implements IGame {
         clients.values().stream()
                 .filter(c -> c.player_id != next_player)
                 .forEach(c -> c.ShowOtherDiceResult(next_player, DiceType.Fly, 2, dice_result));
+    }
+
+    @Override
+    public String saveGame() {
+        JSONObject ret = new JSONObject();
+        ret.put("Player_Count", this.Player_Count);
+        ret.put("player_ids", this.player_ids);
+        ret.put("planePosition", this.planePosition);
+        ret.put("planeStacks", this.planeStacks);
+
+        ret.put("dice_player_id", this.dice_player_id);
+        ret.put("dice_first_result", this.dice_first_result);
+        ret.put("dice_second_result", this.dice_second_result);
+        ret.put("dice_moved", this.dice_moved);
+        ret.put("cheatDice", this.cheatDice);
+
+        ret.put("AIClients", clients.entrySet().stream()
+                .filter(entry -> entry.getValue() instanceof AIClient)
+                .map(Map.Entry::getKey)
+                .collect(Collectors.toList()));
+        ret.put("DummyAIClients", clients.entrySet().stream()
+                .filter(entry -> entry.getValue() instanceof DummyAIClient)
+                .map(Map.Entry::getKey)
+                .collect(Collectors.toList()));
+
+        return ret.toJSONString();
+    }
+
+    @Override
+    public boolean loadGame(String json) {
+        try {
+            JSONObject obj = JSON.parseObject(json);
+            this.Player_Count = obj.getIntValue("Player_Count");
+            this.player_ids = obj.getJSONArray("player_ids").toJavaList(Integer.class);
+            this.planePosition = (Map<Integer, Integer>) obj.getJSONObject("planePosition").toJavaObject(Map.class);
+            this.planeStacks = obj.getJSONArray("planeStacks").toJavaList(PlaneStack.class);
+            this.dice_player_id = obj.getIntValue("dice_player_id");
+            this.dice_first_result = obj.getIntValue("dice_first_result");
+            this.dice_second_result = obj.getIntValue("dice_second_result");
+            this.dice_moved = obj.getBooleanValue("dice_moved");
+            this.cheatDice = new ArrayDeque<>(obj.getJSONArray("dice_first_result").toJavaList(Integer.class));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+        return true;
     }
 
     /**

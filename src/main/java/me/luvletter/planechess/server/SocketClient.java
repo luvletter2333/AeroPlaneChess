@@ -3,9 +3,12 @@ package me.luvletter.planechess.server;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONException;
 import com.alibaba.fastjson.JSONObject;
-import com.alibaba.fastjson.serializer.SerializeConfig;
 import com.alibaba.fastjson.serializer.SerializerFeature;
-import me.luvletter.planechess.game.*;
+import me.luvletter.planechess.game.client.GameClient;
+import me.luvletter.planechess.model.Battle;
+import me.luvletter.planechess.model.ChessBoardStatus;
+import me.luvletter.planechess.model.DiceType;
+import me.luvletter.planechess.model.Movement;
 import org.java_websocket.WebSocket;
 
 import java.util.HashSet;
@@ -110,7 +113,6 @@ public class SocketClient extends GameClient {
     }
 
     public void proceedRequest(JSONObject jsonData) {
-        // TODO: JSON Parse and proceed Requests from Clients
         String action = jsonData.getString("action");
         try {
             switch (action) {

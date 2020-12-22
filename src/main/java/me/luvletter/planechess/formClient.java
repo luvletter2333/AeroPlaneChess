@@ -1,11 +1,10 @@
 package me.luvletter.planechess;
 
 import com.alibaba.fastjson.JSONObject;
-import me.luvletter.planechess.game.GameList;
-import me.luvletter.planechess.game.LocalClient;
-import me.luvletter.planechess.game.NetworkClient;
+import me.luvletter.planechess.model.GameList;
+import me.luvletter.planechess.game.client.LocalClient;
+import me.luvletter.planechess.server.NetworkClient;
 import me.luvletter.planechess.game.RemoteGame;
-import org.java_websocket.WebSocket;
 import org.java_websocket.client.WebSocketClient;
 
 import javax.swing.*;
@@ -127,8 +126,6 @@ public class formClient {
                 super.mouseClicked(e);
                 String roomName = JOptionPane.showInputDialog(null,
                         "Room Name:", serverName + " - Create a New Game", JOptionPane.QUESTION_MESSAGE);
-                // String
-                // TODO: Add New Game
                 String playerIDs = JOptionPane.showInputDialog(null,
                         "Player IDs(split by English comma):", serverName + " - Create a New Game", JOptionPane.QUESTION_MESSAGE);
                 String realPlayerIDs = JOptionPane.showInputDialog(null,
@@ -212,7 +209,6 @@ public class formClient {
         this.formGame.setTitle(this.serverName + " - " + room_name);
         this.formGame.showWindow();
         this.formGame.setOnClose(() -> {
-            // TODO: onClose
             this.networkClient.sendData("{\"action\":\"quit_game\"}");
         });
         return this.localClient;

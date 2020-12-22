@@ -14,4 +14,8 @@ public interface IGame {
 
     void battle(int planeID, int step);
 
+    String saveGame();
+
+    boolean loadGame(String json);
+
 }

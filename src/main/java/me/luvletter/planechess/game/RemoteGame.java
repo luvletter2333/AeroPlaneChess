@@ -5,8 +5,12 @@ import com.alibaba.fastjson.JSONObject;
 import org.java_websocket.WebSocket;
 import org.java_websocket.client.WebSocketClient;
 
+/**
+ * give client to use
+ * */
 public class RemoteGame implements IGame {
     private final WebSocketClient webSocket;
+
     public RemoteGame(WebSocketClient webSocket) {
         this.webSocket = webSocket;
     }
@@ -61,5 +65,26 @@ public class RemoteGame implements IGame {
         wrapper.put("data", json);
         System.out.println("[RemoteGame at Client] Send:" + wrapper.toJSONString());
         webSocket.send(wrapper.toJSONString());
+    }
+
+    @Override
+    public String saveGame() {
+        JSONObject json = new JSONObject();
+        json.put("action", "save");
+
+        JSONObject wrapper = new JSONObject();
+        wrapper.put("action", "game");
+        wrapper.put("data", json);
+        webSocket.send(wrapper.toJSONString());
+        return null;
+    }
+
+    @Override
+    public boolean loadGame(String json) {
+        JSONObject wrapper = new JSONObject();
+        wrapper.put("action", "game");
+        wrapper.put("data", JSON.parse(json));
+        webSocket.send(wrapper.toJSONString());
+        return false;
     }
 }

@@ -1,6 +1,5 @@
 package me.luvletter.planechess.client.previewing;
 
-import me.luvletter.planechess.game.GameClient;
 import me.luvletter.planechess.game.IGame;
 
 public abstract class PreviewAction {

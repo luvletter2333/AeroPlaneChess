@@ -1,18 +1,21 @@
-package me.luvletter.planechess.game;
+package me.luvletter.planechess.server;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONException;
 import com.alibaba.fastjson.JSONObject;
-import me.luvletter.planechess.event.EventManager;
 import me.luvletter.planechess.formClient;
+import me.luvletter.planechess.model.GameList;
+import me.luvletter.planechess.game.client.LocalClient;
+import me.luvletter.planechess.model.Battle;
+import me.luvletter.planechess.model.ChessBoardStatus;
+import me.luvletter.planechess.model.DiceType;
+import me.luvletter.planechess.model.Movement;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
 
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
 
 public class NetworkClient {
     private String name;

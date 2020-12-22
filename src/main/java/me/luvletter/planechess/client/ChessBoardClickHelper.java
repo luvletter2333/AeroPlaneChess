@@ -1,6 +1,6 @@
 package me.luvletter.planechess.client;
 
-import me.luvletter.planechess.game.PlayerColor;
+import me.luvletter.planechess.model.PlayerColor;
 
 import java.awt.*;
 import java.awt.event.MouseEvent;

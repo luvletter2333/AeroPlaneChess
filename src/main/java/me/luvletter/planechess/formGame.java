@@ -3,10 +3,7 @@ package me.luvletter.planechess;
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
+import java.awt.event.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -24,6 +21,9 @@ import me.luvletter.planechess.event.EndThreadEvent;
 import me.luvletter.planechess.event.EventManager;
 import me.luvletter.planechess.event.clientevents.*;
 import me.luvletter.planechess.game.*;
+import me.luvletter.planechess.game.client.GameClient;
+import me.luvletter.planechess.game.client.LocalClient;
+import me.luvletter.planechess.model.*;
 
 import static me.luvletter.planechess.client.DiceAnimationHelper.*;
 import static me.luvletter.planechess.util.Utility.*;
@@ -46,6 +46,8 @@ public class formGame {
     private JTextArea label_status;
     private JPanel panel_dice2;
     private JPanel panel_canvas_container_dice2;
+    private JButton btn_save;
+    private JButton btn_load;
 
     public Drawable_JPanel dpanel_Main;
     public Drawable_JPanel dpanel_Dice1;
@@ -165,6 +167,18 @@ public class formGame {
                 eventManager.push(new EndThreadEvent());
             }
         });
+        btn_save.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                super.mouseClicked(e);
+            }
+        });
+        btn_load.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                super.mouseClicked(e);
+            }
+        });
     }
 
     private void handleGameWin(AnnounceWinEvent e) {
@@ -224,7 +238,7 @@ public class formGame {
 
         diceAnimate(dpanel_Dice1, getDiceResultinRound(e.diceResult, 1), 1);
         sleep(1000);
-        //TODO: Debug
+
         diceAnimate(dpanel_Dice2, getDiceResultinRound(e.diceResult, 2), 2);
 
         // final roll
@@ -269,7 +283,6 @@ public class formGame {
 
         diceAnimate(dpanel_Dice1, getDiceResultinRound(e.diceResult, 1), 1);
         sleep(1000);
-        // TODO: Debug
         diceAnimate(dpanel_Dice2, getDiceResultinRound(e.diceResult, 2), 2);
 
         this.label_status.setText(
@@ -280,7 +293,6 @@ public class formGame {
     private PreviewAction lastPreview = null;
 
     private void preview(PreviewEvent e) {
-        // TODO: Maybe other click Event?
         if (lastCBS == null || lastImgae == null)
             return;
         if (!this.isMyDice)
@@ -335,7 +347,6 @@ public class formGame {
                     boolean goStack = JOptionPane.showConfirmDialog(null,
                             "Do you want to form a stack if can?", "PlaneChess",
                             JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION;
-                    // TODO: move or battle
                     //previewObj.apply(clickpMlst.get(0), goStack);
                     if (this.lastCBS.getPlanePosition().entrySet().stream()
                             .anyMatch(entry -> entry.getKey() / 10 != this.playerID && entry.getValue() == matchPos.ID))
@@ -380,7 +391,6 @@ public class formGame {
         Battle battle = e.Result;
         ChessBoardStatus now = e.chessBoardStatus;
         System.out.println(battle);
-        // TODO: Make Battle Animation
         var drawHelper = new DrawHelper();
         this.lastCBS.getPlanePosition().keySet().stream()   //所有飞机
                 .filter(plnid -> !battle.stack1.contains(plnid))

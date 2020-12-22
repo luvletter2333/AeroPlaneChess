@@ -1,5 +1,8 @@
-package me.luvletter.planechess.game;
+package me.luvletter.planechess.game.client;
 
+
+import me.luvletter.planechess.game.IGame;
+import me.luvletter.planechess.model.*;
 
 import java.util.HashSet;
 

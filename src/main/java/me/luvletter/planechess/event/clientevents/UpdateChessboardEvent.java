@@ -2,8 +2,8 @@ package me.luvletter.planechess.event.clientevents;
 
 import me.luvletter.planechess.event.Event;
 import me.luvletter.planechess.event.EventType;
-import me.luvletter.planechess.game.ChessBoardStatus;
-import me.luvletter.planechess.game.Movement;
+import me.luvletter.planechess.model.ChessBoardStatus;
+import me.luvletter.planechess.model.Movement;
 
 import java.util.HashSet;
 

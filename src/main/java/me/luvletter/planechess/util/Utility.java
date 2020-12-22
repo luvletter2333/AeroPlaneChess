@@ -1,7 +1,7 @@
 package me.luvletter.planechess.util;
 
 import me.luvletter.planechess.client.PositionList;
-import me.luvletter.planechess.game.PlaneStack;
+import me.luvletter.planechess.model.PlaneStack;
 
 import javax.swing.*;
 import java.util.ArrayList;

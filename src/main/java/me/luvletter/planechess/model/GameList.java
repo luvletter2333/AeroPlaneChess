@@ -1,4 +1,4 @@
-package me.luvletter.planechess.game;
+package me.luvletter.planechess.model;
 
 public class GameList {
     public String remain;

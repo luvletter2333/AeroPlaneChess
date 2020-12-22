@@ -1,4 +1,9 @@
-package me.luvletter.planechess.game;
+package me.luvletter.planechess.game.client;
+
+import me.luvletter.planechess.model.Battle;
+import me.luvletter.planechess.model.ChessBoardStatus;
+import me.luvletter.planechess.model.DiceType;
+import me.luvletter.planechess.model.Movement;
 
 import java.util.HashSet;
 

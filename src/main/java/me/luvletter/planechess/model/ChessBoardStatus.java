@@ -1,4 +1,4 @@
-package me.luvletter.planechess.game;
+package me.luvletter.planechess.model;
 
 import java.util.*;
 
@@ -9,7 +9,7 @@ public class ChessBoardStatus {
     private boolean isWin;
     private int wonPlayer;
 
-    public ChessBoardStatus(int player_count, HashMap<Integer, Integer> pos, ArrayList<PlaneStack> stacks, boolean isWin, int wonPlayer) {
+    public ChessBoardStatus(int player_count, Map<Integer, Integer> pos, List<PlaneStack> stacks, boolean isWin, int wonPlayer) {
         this.planePosition = new HashMap<>(pos);
         this.player_Count = player_count;
         this.stacks = new ArrayList<>();

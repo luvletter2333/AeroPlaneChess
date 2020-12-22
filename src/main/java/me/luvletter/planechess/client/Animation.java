@@ -1,8 +1,8 @@
 package me.luvletter.planechess.client;
 
-import me.luvletter.planechess.game.ChessBoardStatus;
-import me.luvletter.planechess.game.Movement;
-import me.luvletter.planechess.game.PlaneStack;
+import me.luvletter.planechess.model.ChessBoardStatus;
+import me.luvletter.planechess.model.Movement;
+import me.luvletter.planechess.model.PlaneStack;
 import me.luvletter.planechess.util.Utility;
 
 import java.awt.*;

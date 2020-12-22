@@ -3,6 +3,7 @@ package me.luvletter.planechess.server;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONException;
 import com.alibaba.fastjson.JSONObject;
+import me.luvletter.planechess.game.ServerGame;
 import org.java_websocket.WebSocket;
 import org.java_websocket.handshake.ClientHandshake;
 import org.java_websocket.server.*;
@@ -72,7 +73,6 @@ public class Server extends WebSocketServer {
                     }
                 }
             }
-            // TODO: clear its game
         } catch (Exception e) {
             log(" Exception " + e.getClass().toString() + " When handling " + webSocket);
             e.printStackTrace();
