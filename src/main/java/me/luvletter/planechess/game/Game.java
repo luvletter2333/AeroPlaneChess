@@ -12,10 +12,10 @@ import java.util.stream.Collectors;
 
 import static me.luvletter.planechess.util.Utility.*;
 
-public class Game {
+public class Game implements IGame {
 
     public final int Player_Count;
-    private final ArrayList<Integer> player_ids;
+    protected final ArrayList<Integer> player_ids;
     /**
      * Key -> plane ID
      * Value -> Position ID, such as 102 302
@@ -34,10 +34,10 @@ public class Game {
     private boolean has_won = false;
     private int win_player_id = 0;
 
-    private final Thread gameThread;
-    private final EventManager gameEventManager;
+    protected final Thread gameThread;
+    protected final EventManager gameEventManager;
 
-    protected final HashMap<Integer, GameClient> clients;
+    protected volatile HashMap<Integer, GameClient> clients;
 
     private volatile Movement movement;
     private volatile HashSet<Integer> backPlane;
@@ -101,25 +101,28 @@ public class Game {
         if (!player_ids.contains(client.player_id))
             return;
         this.clients.put(client.player_id, client);
-        client.bindGame(this);
     }
 
     public void announceStart() {
         this.gameEventManager.push(new AnnounceStartEvent());
     }
 
+    @Override
     public void takeOff(int player_id) {
         this.gameEventManager.push(new TakeOffEvent(player_id));
     }
 
+    @Override
     public void skip(int player_id) {
         this.gameEventManager.push(new SkipEvent(player_id));
     }
 
+    @Override
     public void move(int plane_id, int step, boolean go_stack) {
         this.gameEventManager.push(new MoveEvent(plane_id, step, go_stack));
     }
 
+    @Override
     public void battle(int planeID, int step) {
         this.gameEventManager.push(new BattleEvent(planeID, step));
     }
@@ -135,7 +138,8 @@ public class Game {
         clients.values().stream()
                 .filter(c -> c.player_id != start_player)
                 .forEach(c -> c.ShowOtherDiceResult(start_player, DiceType.Fly, 2, dice_result));
-
+        System.out.println("announce Start");
+        // TODO: DEBUG
     }
 
     private boolean _takeOff(int player_id) {
@@ -169,7 +173,7 @@ public class Game {
         if (this.dice_player_id != player_id)
             return false;
         this.dice_moved = true;
-        this.movement = null;
+        this.movement = new Movement(0, 0, 0);
         this.backPlane = new HashSet<>();
         this.clients.values().stream().filter(client -> client.player_id != player_id)
                 .forEach(client -> client.AnnounceOtherSkip(player_id));
@@ -531,6 +535,8 @@ public class Game {
         var cbs = getChessboardStatus();
         clients.values().forEach(c -> c.UpdateClientChessBoard(cbs, movement, backPlane, false, false));
         // TODO: Remove isSkipped
+        System.out.println("updateClients");
+        // TODO: DEBUG
     }
 
     private void nextLoop() {

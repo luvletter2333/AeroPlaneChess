@@ -5,14 +5,14 @@ import java.util.List;
 import java.util.function.Function;
 
 public class Battle {
-    public final List<Integer> stack1;
-    public final List<Integer> stack2;
-    public final int planeID1;
-    public final int planeID2;
-    public final int destPosition;
-    private final List<BattleResult> results;
-    public final List<Integer> remainstack;
-    private final Function<Void, Integer> onceDice;
+    public List<Integer> stack1;
+    public List<Integer> stack2;
+    public int planeID1;
+    public int planeID2;
+    public int destPosition;
+    private List<BattleResult> results;
+    public List<Integer> remainstack;
+    private Function<Void, Integer> onceDice;
 
     /**
      * stack1是Battle的发起者
@@ -43,6 +43,9 @@ public class Battle {
         this.onceDice = null;
         this.remainstack = new ArrayList<>(oldObj.remainstack);
         this.destPosition = oldObj.destPosition;
+    }
+
+    public Battle() {
     }
 
     /**

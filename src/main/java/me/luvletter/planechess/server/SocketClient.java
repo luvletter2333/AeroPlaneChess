@@ -3,6 +3,8 @@ package me.luvletter.planechess.server;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONException;
 import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson.serializer.SerializeConfig;
+import com.alibaba.fastjson.serializer.SerializerFeature;
 import me.luvletter.planechess.game.*;
 import org.java_websocket.WebSocket;
 
@@ -33,7 +35,12 @@ public class SocketClient extends GameClient {
         json.put("backPlanes", JSON.toJSON(backPlanes));
         json.put("isSkipped", JSON.toJSON(isSkipped));
         json.put("isInitialize", JSON.toJSON(isInitialize));
-        webSocket.send(json.toJSONString());
+        JSONObject wrapper = new JSONObject();
+        wrapper.put("action", "game");
+        wrapper.put("data", json);
+        String finalString = JSON.toJSONString(wrapper, SerializerFeature.WriteMapNullValue);
+        System.out.println("[Socket Client] Send:" + finalString);
+        webSocket.send(finalString);
     }
 
     @Override
@@ -43,7 +50,11 @@ public class SocketClient extends GameClient {
         json.put("diceType", diceType);
         json.put("dice_count", dice_count);
         json.put("dice_result", dice_result);
-        webSocket.send(json.toJSONString());
+        JSONObject wrapper = new JSONObject();
+        wrapper.put("action", "game");
+        wrapper.put("data", json);
+        System.out.println("[Socket Client] Send:" + wrapper.toJSONString());
+        webSocket.send(wrapper.toJSONString());
     }
 
     @Override
@@ -51,10 +62,14 @@ public class SocketClient extends GameClient {
         JSONObject json = new JSONObject();
         json.put("action", "ShowOtherDice");
         json.put("player_id", player_id);
-        json.put("diceType", diceType);
+        //    json.put("diceType", diceType);
         json.put("dice_count", dice_count);
         json.put("dice_result", dice_result);
-        webSocket.send(json.toJSONString());
+        JSONObject wrapper = new JSONObject();
+        wrapper.put("action", "game");
+        wrapper.put("data", json);
+        System.out.println("[Socket Client] Send:" + wrapper.toJSONString());
+        webSocket.send(wrapper.toJSONString());
     }
 
     @Override
@@ -62,7 +77,11 @@ public class SocketClient extends GameClient {
         JSONObject json = new JSONObject();
         json.put("action", "AnnounceWin");
         json.put("winner", winner);
-        webSocket.send(json.toJSONString());
+        JSONObject wrapper = new JSONObject();
+        wrapper.put("action", "game");
+        wrapper.put("data", json);
+        System.out.println("[Socket Client] Send:" + wrapper.toJSONString());
+        webSocket.send(wrapper.toJSONString());
     }
 
     @Override
@@ -70,7 +89,11 @@ public class SocketClient extends GameClient {
         JSONObject json = new JSONObject();
         json.put("action", "OtherSkipEvent");
         json.put("playerID", playerID);
-        webSocket.send(json.toJSONString());
+        JSONObject wrapper = new JSONObject();
+        wrapper.put("action", "game");
+        wrapper.put("data", json);
+        System.out.println("[Socket Client] Send:" + wrapper.toJSONString());
+        webSocket.send(wrapper.toJSONString());
     }
 
     @Override
@@ -78,8 +101,12 @@ public class SocketClient extends GameClient {
         JSONObject json = new JSONObject();
         json.put("action", "BattleResult");
         json.put("cbs", JSON.toJSON(cbs));
-        json.put("movement", JSON.toJSON(battle));
-        webSocket.send(json.toJSONString());
+        json.put("battle", JSON.toJSON(battle));
+        JSONObject wrapper = new JSONObject();
+        wrapper.put("action", "game");
+        wrapper.put("data", json);
+        System.out.println("[Socket Client] Send:" + wrapper.toJSONString());
+        webSocket.send(wrapper.toJSONString());
     }
 
     public void proceedRequest(JSONObject jsonData) {

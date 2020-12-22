@@ -6,14 +6,15 @@ import java.util.HashSet;
 public abstract class GameClient {
 
     public final int player_id;
-    protected Game game;
+    protected IGame game;
 
     public GameClient(int player_id) {
         this.player_id = player_id;
     }
 
-    public void bindGame(Game game) {
+    public GameClient bindGame(IGame game) {
         this.game = game;
+        return this;
     }
 
     public abstract boolean isReady();
@@ -28,6 +29,8 @@ public abstract class GameClient {
 
     public abstract void AnnounceOtherSkip(int playerID);
 
+    public abstract void AnnounceBattleResult(ChessBoardStatus cbs, Battle battle);
+
     public void takeOff() {
         this.game.takeOff(this.player_id);
     }
@@ -40,5 +43,11 @@ public abstract class GameClient {
         this.game.skip(this.player_id);
     }
 
-    public abstract void AnnounceBattleResult(ChessBoardStatus cbs, Battle battle);
+    public void battle(int planeID, int step){
+        this.game.battle(planeID, step);
+    }
+
+    public IGame getGame() {
+        return game;
+    }
 }

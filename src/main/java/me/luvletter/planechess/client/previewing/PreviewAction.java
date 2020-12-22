@@ -1,7 +1,7 @@
 package me.luvletter.planechess.client.previewing;
 
 import me.luvletter.planechess.game.GameClient;
-import me.luvletter.planechess.game.LocalClient;
+import me.luvletter.planechess.game.IGame;
 
 public abstract class PreviewAction {
 
@@ -9,11 +9,11 @@ public abstract class PreviewAction {
      * true -> move preview, false ->
      * */
     public final PreviewType previewType;
-    protected final GameClient client;
+    protected final IGame game;
 
-    public PreviewAction(PreviewType previewType, GameClient client) {
+    public PreviewAction(PreviewType previewType, IGame game) {
         this.previewType = previewType;
-        this.client = client;
+        this.game = game;
     }
 
     public abstract boolean apply();

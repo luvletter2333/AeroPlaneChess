@@ -13,6 +13,8 @@ public class Resource {
     private static final HashMap<ResourceType, BufferedImage> resources = new HashMap<>();
 
     public static BufferedImage getResource(ResourceType type) {
+        if (resources.size() == 0)
+            loadResources();
         return resources.get(type);
     }
 

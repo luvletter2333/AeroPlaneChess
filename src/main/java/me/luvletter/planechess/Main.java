@@ -1,6 +1,5 @@
 package me.luvletter.planechess;
 
-import me.luvletter.planechess.client.Resource;
 import me.luvletter.planechess.game.AIClient;
 import me.luvletter.planechess.game.Game;
 import me.luvletter.planechess.game.LocalClient;
@@ -29,7 +28,8 @@ public class Main {
         //  JOptionPane.showMessageDialog(null,"you suckK");
 
         // Load Resources
-        Resource.loadResources();
+        // Resource.loadResources();
+        // Resources are automatically loaded
 
         var tmp_player_list = new ArrayList<Integer>();
         tmp_player_list.add(1);
@@ -43,11 +43,12 @@ public class Main {
 
         var client = new LocalClient(1);
         game.addClient(client);
-        game.addClient(new AIClient(2));
-        game.addClient(new AIClient(3));
-        game.addClient(new AIClient(4));
+        client.bindGame(game);
+        game.addClient(new AIClient(2).bindGame(game));
+        game.addClient(new AIClient(3).bindGame(game));
+        game.addClient(new AIClient(4).bindGame(game));
 
-        var form = new formMain(client, client.getClientEventManager());
+        var form = new formGame(client, client.getClientEventManager());
         var gui = new JFrame("Test App");
         gui.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         gui.setSize(800, 750);

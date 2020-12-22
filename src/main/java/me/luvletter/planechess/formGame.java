@@ -5,6 +5,8 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -25,7 +27,7 @@ import me.luvletter.planechess.game.*;
 import static me.luvletter.planechess.client.DiceAnimationHelper.*;
 import static me.luvletter.planechess.util.Utility.*;
 
-public class formMain {
+public class formGame {
     public JPanel panel_Main;
     private JPanel panel_Down;
     private JLabel label_Down;
@@ -60,6 +62,7 @@ public class formMain {
     private volatile boolean isMyDice = false;
     //private volatile boolean dicing = false;
     //private final Object dicing_lock = new Object(); // Dicing lock
+    private volatile boolean isWin = false;
 
     private final Object board_drawing_lock = new Object(); // Main Canvas Drawing Lock
 
@@ -69,7 +72,10 @@ public class formMain {
     private EventManager eventManager;
     private Thread ui_thread;
 
-    public formMain(LocalClient localClient, EventManager eventManager) {
+    private JFrame gui;
+    private Runnable onClose;
+
+    public formGame(LocalClient localClient, EventManager eventManager) {
         super();
         this.localClient = localClient;
         this.playerID = this.localClient.player_id;
@@ -127,6 +133,47 @@ public class formMain {
             }
         });
         ui_thread.start();
+
+        this.gui = new JFrame();
+
+        this.gui.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+        this.gui.setSize(900, 750);
+        this.gui.setContentPane(this.panel_Main);
+        this.gui.addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent e) {
+                if (!isWin) {
+                    if (JOptionPane.showConfirmDialog(gui,
+                            "Are you sure you want to quit game?", "Close Window?",
+                            JOptionPane.YES_NO_OPTION,
+                            JOptionPane.QUESTION_MESSAGE) != JOptionPane.YES_OPTION) {
+                        return;
+                    }
+                }
+                // accept to quit
+                if (onClose != null) {
+                    onClose.run();
+                    gui.setVisible(false);
+                    gui.dispose();
+                }
+            }
+        });
+    }
+
+    public void setTitle(String title) {
+        this.gui.setTitle(title);
+    }
+
+    public void setOnClose(Runnable onClose) {
+        this.onClose = onClose;
+    }
+
+    public void showWindow() {
+        this.gui.setVisible(true);
+    }
+
+    public void bindGame(IGame game) {
+        this.localClient.bindGame(game);
     }
 
     // Events
@@ -234,7 +281,7 @@ public class formMain {
                     && this.lastCBS.getPlanePosition().entrySet().stream()
                     .anyMatch(entry -> entry.getKey() / 10 == this.playerID && entry.getValue() % 100 == 99)) {
                 // clear to take off
-                this.lastPreview = new TakeOffPreviewAction(this.localClient);
+                this.lastPreview = new TakeOffPreviewAction(this.playerID, this.localClient.getGame());
                 // Draw Preview Image
                 var previewImg = Resource.copyImage(this.lastImgae);
                 DrawHelper.drawPlaneWithAlpha(previewImg.createGraphics(),
@@ -267,7 +314,13 @@ public class formMain {
                     boolean goStack = JOptionPane.showConfirmDialog(null,
                             "Do you want to form a stack if can?", "PlaneChess",
                             JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION;
-                    previewObj.apply(clickpMlst.get(0), goStack);
+                    // TODO: move or battle
+                    //previewObj.apply(clickpMlst.get(0), goStack);
+                    if (this.lastCBS.getPlanePosition().entrySet().stream()
+                            .anyMatch(entry -> entry.getKey() / 10 != this.playerID && entry.getValue() == matchPos.ID))
+                        this.localClient.battle(previewObj.planeID, clickpMlst.get(0));
+                    else
+                        this.localClient.move(previewObj.planeID, clickpMlst.get(0), goStack);
                     this.lastPreview = null;
                     return;
                 }
@@ -297,9 +350,8 @@ public class formMain {
                             Resource.getPlaneImage(this.playerID), 0.5f));
             this.dpanel_Main.Draw(previewImg);
 
-            this.lastPreview = new MovePreviewAction(localClient, rep, matchPos.ID, possibleMove);
+            this.lastPreview = new MovePreviewAction(this.localClient.getGame(), rep, matchPos.ID, possibleMove);
         }
-
     }
 
     private void showBattleResult(BattleResultEvent e) {

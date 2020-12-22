@@ -3,11 +3,11 @@ package me.luvletter.planechess.game;
 import java.util.*;
 
 public class ChessBoardStatus {
-    private final int player_Count;
+    private int player_Count;
     private HashMap<Integer, Integer> planePosition;
-    private final ArrayList<PlaneStack> stacks;
-    private final boolean isWin;
-    private final int wonPlayer;
+    private ArrayList<PlaneStack> stacks;
+    private boolean isWin;
+    private int wonPlayer;
 
     public ChessBoardStatus(int player_count, HashMap<Integer, Integer> pos, ArrayList<PlaneStack> stacks, boolean isWin, int wonPlayer) {
         this.planePosition = new HashMap<>(pos);
@@ -17,6 +17,9 @@ public class ChessBoardStatus {
             this.stacks.add(stack.deepCopy());
         this.isWin = isWin;
         this.wonPlayer = wonPlayer;
+    }
+
+    public ChessBoardStatus() {
     }
 
     public int getPlayer_Count() {
@@ -55,5 +58,33 @@ public class ChessBoardStatus {
                 ", isWin=" + isWin +
                 ", wonPlayer=" + wonPlayer +
                 '}';
+    }
+
+    public void setPlayer_Count(int player_Count) {
+        this.player_Count = player_Count;
+    }
+
+    public void setPlanePosition(HashMap<Integer, Integer> planePosition) {
+        this.planePosition = planePosition;
+    }
+
+    public void setStacks(ArrayList<PlaneStack> stacks) {
+        this.stacks = stacks;
+    }
+
+    public boolean isWin() {
+        return isWin;
+    }
+
+    public void setWin(boolean win) {
+        isWin = win;
+    }
+
+    public int getWonPlayer() {
+        return wonPlayer;
+    }
+
+    public void setWonPlayer(int wonPlayer) {
+        this.wonPlayer = wonPlayer;
     }
 }

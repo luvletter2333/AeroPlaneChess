@@ -1,17 +1,21 @@
 package me.luvletter.planechess.server;
 
+import me.luvletter.planechess.event.gameevents.StopEvent;
 import me.luvletter.planechess.game.AIClient;
+import me.luvletter.planechess.game.DummyAIClient;
 import me.luvletter.planechess.game.GameClient;
 import me.luvletter.planechess.game.Game;
 import org.java_websocket.WebSocket;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class ServerGame extends Game {
     public final String UUID;
     public final String RoomName;
-    private final ArrayList<String> socketUUIDs = new ArrayList<>();
+    private final HashMap<String, Integer> socketUUIDs = new HashMap<>();
 
     public ServerGame(String uuid, List<Integer> player_ids, List<Integer> realPlayerIDs, String roomName) {
         super(player_ids.size(), new ArrayList<>(player_ids));
@@ -23,15 +27,24 @@ public class ServerGame extends Game {
         for (int AI_id : ai) {
             this.addClient(new AIClient(AI_id));
         }
+    }
 
+    public String getRemainPlayerID() {
+        var remainList = this.player_ids.stream()
+                .filter(pid -> !this.clients.containsKey(pid))
+                .collect(Collectors.toList());
+        if (remainList.size() == 0)
+            return "0";
+        return remainList.stream().map(Object::toString).collect(Collectors.joining(", "));
     }
 
     public boolean attachClientSocket(WebSocket webSocket, int playerID) {
         if (clients.containsKey(playerID))
             return false;
-        if (socketUUIDs.contains(webSocket.getAttachment()))
+        if (socketUUIDs.containsKey(webSocket.getAttachment()))
             return false;
         GameClient socketClient = new SocketClient(playerID, webSocket);
+        socketClient.bindGame(this);
         addClient(socketClient);
         return true;
     }
@@ -44,16 +57,58 @@ public class ServerGame extends Game {
         return false;
     }
 
-    public boolean containUUID(String uuid){
-        return this.socketUUIDs.contains(uuid);
+    public boolean containSocket(String socketUUID) {
+        return this.socketUUIDs.containsKey(socketUUID);
     }
 
-    public SocketClient getSocketClient(String uuid){
+    public SocketClient getSocketClient(String uuid) {
         for (GameClient client : this.clients.values()) {
-            if(client instanceof SocketClient)
-                if(((SocketClient) client).socketUUID.equals(uuid))
+            if (client instanceof SocketClient)
+                if (((SocketClient) client).socketUUID.equals(uuid))
                     return (SocketClient) client;
         }
         return null;
+    }
+
+    public ArrayList<Integer> getPlayerIDs() {
+        return this.player_ids;
+    }
+
+    @Override
+    public String toString() {
+        return "ServerGame{" +
+                "UUID='" + UUID + '\'' +
+                ", RoomName='" + RoomName + '\'' +
+                ", socketUUIDs=" + socketUUIDs +
+                ", Player_Count=" + Player_Count +
+                ", player_ids=" + player_ids +
+                ", clients=" + clients +
+                '}';
+    }
+
+    public int getClientCount() {
+        return this.clients.size();
+    }
+
+    /**
+     * When a SocketClient is disconnected from server. Then attach a DummyAI to ServerGame
+     *
+     * @return false if this game has no alive people, just AI and DummyAI, which means this game should be deleted.
+     */
+    public synchronized boolean socketDisconnect(String socketUUID) {
+        Integer player_id = this.socketUUIDs.get(socketUUID);
+        var dummyAI = new DummyAIClient(player_id);
+        this.clients.put(player_id, dummyAI);
+        // in ServerGame, there are only three types of Clients: AIClient DummyAIClient and SocketClient
+        return this.clients.values().stream().anyMatch(gameClient -> gameClient instanceof SocketClient);
+    }
+
+    public boolean socketReconnect() {
+        return false;
+        // TODO: Reconnect
+    }
+
+    public void stop() {
+        this.gameEventManager.push(new StopEvent());
     }
 }
