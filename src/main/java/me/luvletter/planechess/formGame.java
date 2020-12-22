@@ -185,6 +185,9 @@ public class formGame {
         // under Fly mode, dice Count is always 2
         this.dice_first_result = e.diceResult / 10;
         this.dice_second_result = e.diceResult % 10;
+
+        dpanel_Dice1.Draw(Resource.getResource(ResourceType.Dice_Unknown));
+        dpanel_Dice2.Draw(Resource.getResource(ResourceType.Dice_Unknown));
         dice_Animation(e);
         if (this.dice_first_result != 6 && this.dice_second_result != 6 &&
                 this.lastCBS.getPlanePosition().entrySet().stream()
@@ -203,6 +206,9 @@ public class formGame {
         this.label_status.setText(PlayerColor.getFriendString(e.playerID) + " is dicing.");
         setJPanelTitle(this.panel_dice1, PlayerColor.getFriendString(e.playerID) + "'s First Dice");
         setJPanelTitle(this.panel_dice2, PlayerColor.getFriendString(e.playerID) + "'s Second Dice");
+
+        dpanel_Dice1.Draw(Resource.getResource(ResourceType.Dice_Unknown));
+        dpanel_Dice2.Draw(Resource.getResource(ResourceType.Dice_Unknown));
 
         diceAnimate(dpanel_Dice1, getDiceResultinRound(e.diceResult, 1), 1);
         sleep(1000);
@@ -266,6 +272,8 @@ public class formGame {
         if (lastCBS == null || lastImgae == null)
             return;
         if (!this.isMyDice)
+            return;
+        if (isWin)
             return;
         Point phyPoint = e.clickPoint;
         Position matchPos = ChessBoardClickHelper.matchPositionfromPoint(phyPoint);
