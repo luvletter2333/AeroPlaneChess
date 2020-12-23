@@ -1,5 +1,5 @@
 # Aeroplane Chess
-Final Project for CS102-F20
+Final Project for CS107-F20
 
 
 ## Features
