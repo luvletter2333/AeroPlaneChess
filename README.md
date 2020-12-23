@@ -20,6 +20,6 @@ Final Project for CS102-F20
 - 当飞机降落在对手的飞机上，对手飞机返回机库
 - 降落到同一颜色的格子上时，立即跳至下一个同颜色块, 在这些颜色块上的其他飞机立刻滚回机场
 
-- License
+## License
 
 MIT License
